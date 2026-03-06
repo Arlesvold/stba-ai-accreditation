@@ -1,8 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Prisma Schema - AI-Based Accreditation Intelligence System
+// STBA Pontianak (Sekolah Tinggi Bahasa Asing)
+// Status: Draft — akan disesuaikan setelah analisis kebutuhan client
 
 generator client {
   provider = "prisma-client"
@@ -11,4 +9,196 @@ generator client {
 
 datasource db {
   provider = "mysql"
+}
+
+// ==================== USER & AUTH ====================
+
+model User {
+  id         String   @id @default(uuid())
+  name       String
+  email      String   @unique
+  password   String
+  role       Role     @default(DOSEN)
+  nidn       String?  @unique
+  department String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  publications Publication[]
+  grants       ResearchGrant[]
+  hki          HKI[]
+  bkdReports   BKDReport[]
+
+  @@map("users")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  PIMPINAN
+  DOSEN
+  STAFF
+}
+
+// ==================== PUBLIKASI & RISET ====================
+
+model Publication {
+  id         String          @id @default(uuid())
+  title      String
+  abstract   String?         @db.Text
+  journal    String
+  sintaLevel String?
+  doi        String?
+  year       Int
+  citations  Int             @default(0)
+  type       PublicationType
+  authorId   String
+  author     User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt  DateTime        @default(now())
+
+  @@index([authorId])
+  @@index([year])
+  @@map("publications")
+}
+
+enum PublicationType {
+  JOURNAL
+  CONFERENCE
+  BOOK
+  CHAPTER
+}
+
+model ResearchGrant {
+  id        String   @id @default(uuid())
+  title     String
+  source    String
+  amount    Float
+  year      Int
+  status    GrantStatus @default(ACTIVE)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("research_grants")
+}
+
+enum GrantStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model HKI {
+  id          String   @id @default(uuid())
+  title       String
+  type        String
+  regNumber   String?
+  year        Int
+  status      String   @default("REGISTERED")
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@map("hki")
+}
+
+model BKDReport {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  semester  String
+  year      Int
+  fileUrl   String?
+  status    String   @default("DRAFT")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("bkd_reports")
+}
+
+// ==================== IKU (Indikator Kinerja Utama) ====================
+
+model IKUData {
+  id         String   @id @default(uuid())
+  criteriaNo Int
+  indicator  String
+  target     Float
+  current    Float
+  year       Int
+  semester   Int?
+  notes      String?  @db.Text
+  updatedBy  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([criteriaNo, year])
+  @@map("iku_data")
+}
+
+// ==================== AKREDITASI ====================
+
+model AccreditationScore {
+  id           String   @id @default(uuid())
+  criteriaNo   Int
+  criteriaName String
+  score        Float
+  maxScore     Float    @default(100)
+  year         Int
+  notes        String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([criteriaNo, year])
+  @@map("accreditation_scores")
+}
+
+// ==================== RISK ALERT ====================
+
+model RiskAlert {
+  id             String     @id @default(uuid())
+  criteriaNo     Int
+  level          AlertLevel
+  message        String     @db.Text
+  recommendation String?    @db.Text
+  isResolved     Boolean    @default(false)
+  resolvedAt     DateTime?
+  createdAt      DateTime   @default(now())
+
+  @@index([criteriaNo, isResolved])
+  @@map("risk_alerts")
+}
+
+enum AlertLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+// ==================== LED (Laporan Evaluasi Diri) ====================
+
+model LEDDocument {
+  id          String    @id @default(uuid())
+  title       String
+  year        Int
+  status      LEDStatus @default(DRAFT)
+  fileUrl     String?
+  generatedBy String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("led_documents")
+}
+
+enum LEDStatus {
+  DRAFT
+  PROCESSING
+  COMPLETED
+  FAILED
 }
