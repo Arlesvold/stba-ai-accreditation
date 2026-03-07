@@ -1,9 +1,30 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
+import { AppController } from './app.controller.js';
+import { AppService } from './app.service.js';
+import { PrismaModule } from './prisma/prisma.module.js';
+import { AuthModule } from './auth/auth.module.js';
+import { UsersModule } from './users/users.module.js';
+import { IkuModule } from './iku/iku.module.js';
+import { ResearchModule } from './research/research.module.js';
+import { AccreditationModule } from './accreditation/accreditation.module.js';
+import { RiskModule } from './risk/risk.module.js';
+import { LedModule } from './led/led.module.js';
+import { FilesModule } from './files/files.module.js';
 
 @Module({
-  imports: [],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    PrismaModule,
+    AuthModule,
+    UsersModule,
+    IkuModule,
+    ResearchModule,
+    AccreditationModule,
+    RiskModule,
+    LedModule,
+    FilesModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
