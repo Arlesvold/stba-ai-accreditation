@@ -1,43 +1,77 @@
+"use client";
+
+import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Target, BookOpen, Award, AlertTriangle } from "lucide-react";
-
-const stats = [
-  {
-    title: "IKU Achievement",
-    value: "—",
-    description: "Not yet calculated",
-    icon: Target,
-    color: "text-blue-600",
-  },
-  {
-    title: "Total Research",
-    value: "—",
-    description: "Publications & Grants",
-    icon: BookOpen,
-    color: "text-green-600",
-  },
-  {
-    title: "Accreditation Score",
-    value: "—",
-    description: "Readiness score",
-    icon: Award,
-    color: "text-amber-600",
-  },
-  {
-    title: "Risk Alerts",
-    value: "—",
-    description: "Active alerts",
-    icon: AlertTriangle,
-    color: "text-red-600",
-  },
-];
+import { useAuthStore } from "@/stores/auth-store";
+import { useIkuStore } from "@/stores/iku-store";
+import { useResearchStore } from "@/stores/research-store";
+import { useAccreditationStore } from "@/stores/accreditation-store";
+import { useRiskStore } from "@/stores/risk-store";
 
 export default function DashboardPage() {
+  const { user } = useAuthStore();
+  const { items: ikuItems, fetchAll: fetchIku } = useIkuStore();
+  const { publications, grants, fetchPublications, fetchGrants } = useResearchStore();
+  const { readiness, fetchReadiness } = useAccreditationStore();
+  const { alerts, fetchAlerts } = useRiskStore();
+
+  useEffect(() => {
+    fetchIku();
+    fetchPublications();
+    fetchGrants();
+    fetchReadiness();
+    fetchAlerts();
+  }, [fetchIku, fetchPublications, fetchGrants, fetchReadiness, fetchAlerts]);
+
+  const avgIku =
+    ikuItems.length > 0
+      ? Math.round(
+          ikuItems.reduce((sum, i) => sum + i.percentage, 0) / ikuItems.length
+        )
+      : 0;
+
+  const totalResearch = publications.length + grants.length;
+  const activeAlerts = alerts.filter((a) => !a.isResolved).length;
+
+  const stats = [
+    {
+      title: "IKU Achievement",
+      value: ikuItems.length > 0 ? `${avgIku}%` : "—",
+      description: `${ikuItems.length} indicators tracked`,
+      icon: Target,
+      color: "text-blue-600",
+    },
+    {
+      title: "Total Research",
+      value: totalResearch > 0 ? String(totalResearch) : "—",
+      description: `${publications.length} publications, ${grants.length} grants`,
+      icon: BookOpen,
+      color: "text-green-600",
+    },
+    {
+      title: "Accreditation Score",
+      value: readiness ? `${readiness.percentage}%` : "—",
+      description: readiness ? `Grade: ${readiness.grade}` : "Not assessed",
+      icon: Award,
+      color: "text-amber-600",
+    },
+    {
+      title: "Risk Alerts",
+      value: activeAlerts > 0 ? String(activeAlerts) : "0",
+      description: `${alerts.length} total, ${activeAlerts} active`,
+      icon: AlertTriangle,
+      color: "text-red-600",
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Welcome back</h2>
+        <h2 className="text-2xl font-bold tracking-tight">
+          Welcome back{user?.name ? `, ${user.name}` : ""}
+        </h2>
         <p className="text-muted-foreground">
           Overview of your accreditation performance indicators.
         </p>
@@ -65,22 +99,65 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Recent Activity</CardTitle>
+            <CardTitle className="text-base">IKU Summary</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
-              No activity yet. Data will appear once connected to the API.
-            </p>
+            {ikuItems.length > 0 ? (
+              <div className="space-y-2">
+                {ikuItems.slice(0, 5).map((iku) => (
+                  <div
+                    key={iku.id}
+                    className="flex items-center justify-between text-sm"
+                  >
+                    <span className="truncate mr-2">{iku.indicator}</span>
+                    <Badge
+                      variant={iku.percentage >= 80 ? "default" : "secondary"}
+                    >
+                      {iku.percentage}%
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No IKU data yet.
+              </p>
+            )}
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Quick Status</CardTitle>
+            <CardTitle className="text-base">Active Risk Alerts</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
-            <Badge variant="secondary">IKU: Pending</Badge>
-            <Badge variant="secondary">Research: Pending</Badge>
-            <Badge variant="secondary">LED: Pending</Badge>
+          <CardContent>
+            {activeAlerts > 0 ? (
+              <div className="space-y-2">
+                {alerts
+                  .filter((a) => !a.isResolved)
+                  .slice(0, 5)
+                  .map((alert) => (
+                    <div
+                      key={alert.id}
+                      className="flex items-center justify-between text-sm"
+                    >
+                      <span className="truncate mr-2">{alert.message}</span>
+                      <Badge
+                        variant={
+                          alert.level === "CRITICAL" || alert.level === "HIGH"
+                            ? "destructive"
+                            : "secondary"
+                        }
+                      >
+                        {alert.level}
+                      </Badge>
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No active alerts. All clear!
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
