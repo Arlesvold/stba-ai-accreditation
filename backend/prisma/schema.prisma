@@ -30,6 +30,8 @@ model User {
   grants       ResearchGrant[]
   hki          HKI[]
   bkdReports   BKDReport[]
+  alumni       Alumni[]
+  achievements StudentAchievement[]
 
   @@map("users")
 }
@@ -108,15 +110,19 @@ model HKI {
 }
 
 model BKDReport {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  semester  String
-  year      Int
-  fileUrl   String?
-  status    String   @default("DRAFT")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  semester       String
+  year           Int
+  teachingHours  Float    @default(0)
+  researchHours  Float    @default(0)
+  serviceHours   Float    @default(0)
+  totalCredits   Float    @default(0)
+  fileUrl        String?
+  status         String   @default("DRAFT")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@index([userId])
   @@map("bkd_reports")
@@ -201,4 +207,105 @@ enum LEDStatus {
   PROCESSING
   COMPLETED
   FAILED
+}
+
+// ==================== STUDENT & ALUMNI ====================
+
+model Alumni {
+  id              String   @id @default(uuid())
+  nim             String   @unique
+  name            String
+  graduationYear  Int
+  programStudy    String
+  employmentStatus String?
+  company         String?
+  position        String?
+  waitingMonths   Int?
+  salary          Float?
+  surveyYear      Int?
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([graduationYear])
+  @@map("alumni")
+}
+
+model StudentAchievement {
+  id          String           @id @default(uuid())
+  studentName String
+  nim         String?
+  title       String
+  category    AchievementLevel
+  type        String
+  organizer   String?
+  year        Int
+  rank        String?
+  userId      String?
+  user        User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt   DateTime         @default(now())
+
+  @@index([year])
+  @@map("student_achievements")
+}
+
+enum AchievementLevel {
+  REGIONAL
+  NATIONAL
+  INTERNATIONAL
+}
+
+// ==================== SPMI (Sistem Penjaminan Mutu Internal) ====================
+
+model SPMICycle {
+  id          String     @id @default(uuid())
+  name        String
+  year        Int
+  phase       SPMIPhase
+  description String?    @db.Text
+  status      String     @default("IN_PROGRESS")
+  startDate   DateTime?
+  endDate     DateTime?
+  findings    String?    @db.Text
+  followUp    String?    @db.Text
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([year, phase])
+  @@map("spmi_cycles")
+}
+
+enum SPMIPhase {
+  PENETAPAN
+  PELAKSANAAN
+  EVALUASI
+  PENGENDALIAN
+  PENINGKATAN
+}
+
+// ==================== KERJASAMA / MoU ====================
+
+model Cooperation {
+  id            String          @id @default(uuid())
+  partnerName   String
+  partnerType   String
+  scope         CooperationScope
+  title         String
+  description   String?         @db.Text
+  startDate     DateTime
+  endDate       DateTime?
+  status        String          @default("ACTIVE")
+  documentUrl   String?
+  contactPerson String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([scope, status])
+  @@map("cooperations")
+}
+
+enum CooperationScope {
+  NATIONAL
+  INTERNATIONAL
 }

@@ -208,3 +208,156 @@ export interface GenerateLedRequest {
   year: number;
   format?: string;
 }
+
+// ===== BKD =====
+export interface BkdReport {
+  id: string;
+  userId: string;
+  user?: { id: string; name: string; nidn?: string };
+  semester: string;
+  year: number;
+  teachingHours: number;
+  researchHours: number;
+  serviceHours: number;
+  totalCredits: number;
+  fileUrl?: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateBkdRequest {
+  semester: string;
+  year: number;
+  teachingHours?: number;
+  researchHours?: number;
+  serviceHours?: number;
+  totalCredits?: number;
+  status?: string;
+}
+
+// ===== Student & Alumni =====
+export interface Alumni {
+  id: string;
+  nim: string;
+  name: string;
+  graduationYear: number;
+  programStudy: string;
+  employmentStatus?: string;
+  company?: string;
+  position?: string;
+  waitingMonths?: number;
+  salary?: number;
+  surveyYear?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateAlumniRequest {
+  nim: string;
+  name: string;
+  graduationYear: number;
+  programStudy: string;
+  employmentStatus?: string;
+  company?: string;
+  position?: string;
+  waitingMonths?: number;
+  salary?: number;
+  surveyYear?: number;
+}
+
+export type AchievementLevel = "REGIONAL" | "NATIONAL" | "INTERNATIONAL";
+
+export interface StudentAchievement {
+  id: string;
+  studentName: string;
+  nim?: string;
+  title: string;
+  category: AchievementLevel;
+  type: string;
+  organizer?: string;
+  year: number;
+  rank?: string;
+  createdAt: string;
+}
+
+export interface CreateAchievementRequest {
+  studentName: string;
+  nim?: string;
+  title: string;
+  category: AchievementLevel;
+  type: string;
+  organizer?: string;
+  year: number;
+  rank?: string;
+}
+
+export interface TracerStudySummary {
+  totalAlumni: number;
+  employed: number;
+  unemployed: number;
+  employmentRate: number;
+  avgWaitingMonths: number;
+}
+
+// ===== SPMI =====
+export type SPMIPhase = "PENETAPAN" | "PELAKSANAAN" | "EVALUASI" | "PENGENDALIAN" | "PENINGKATAN";
+
+export interface SPMICycle {
+  id: string;
+  name: string;
+  year: number;
+  phase: SPMIPhase;
+  description?: string;
+  status: string;
+  startDate?: string;
+  endDate?: string;
+  findings?: string;
+  followUp?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateSpmiRequest {
+  name: string;
+  year: number;
+  phase: SPMIPhase;
+  description?: string;
+  status?: string;
+  startDate?: string;
+  endDate?: string;
+  findings?: string;
+  followUp?: string;
+}
+
+// ===== Kerjasama / MoU =====
+export type CooperationScope = "NATIONAL" | "INTERNATIONAL";
+
+export interface Cooperation {
+  id: string;
+  partnerName: string;
+  partnerType: string;
+  scope: CooperationScope;
+  title: string;
+  description?: string;
+  startDate: string;
+  endDate?: string;
+  status: string;
+  documentUrl?: string;
+  contactPerson?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCooperationRequest {
+  partnerName: string;
+  partnerType: string;
+  scope: CooperationScope;
+  title: string;
+  description?: string;
+  startDate: string;
+  endDate?: string;
+  status?: string;
+  documentUrl?: string;
+  contactPerson?: string;
+}

@@ -13,6 +13,10 @@ import {
   Users,
   ChevronLeft,
   GraduationCap,
+  ClipboardList,
+  UserCheck,
+  Shield,
+  Handshake,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -28,6 +32,10 @@ const navItems = [
   { href: "/dashboard/iku", label: "IKU", icon: Target },
   { href: "/dashboard/research", label: "Research", icon: BookOpen },
   { href: "/dashboard/accreditation", label: "Accreditation", icon: Award },
+  { href: "/dashboard/bkd", label: "BKD Dosen", icon: ClipboardList },
+  { href: "/dashboard/student", label: "Mahasiswa", icon: UserCheck },
+  { href: "/dashboard/spmi", label: "SPMI", icon: Shield },
+  { href: "/dashboard/kerjasama", label: "Kerjasama", icon: Handshake },
   { href: "/dashboard/risk", label: "Risk Alerts", icon: AlertTriangle },
   { href: "/dashboard/led", label: "LED", icon: FileText },
   { href: "/dashboard/users", label: "Users", icon: Users },
