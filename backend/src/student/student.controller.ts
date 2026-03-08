@@ -5,75 +5,61 @@ import {
 import { ApiTags, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { StudentService } from './student.service.js';
-import { CreateAlumniDto, CreateAchievementDto } from './dto/student.dto.js';
+import { CreateStudentsSummaryDto, CreateGraduatesDto } from './dto/student.dto.js';
 
-@ApiTags('Student Analytics')
+@ApiTags('Student & Graduates')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('student')
 export class StudentController {
   constructor(private studentService: StudentService) {}
 
-  // ===== Alumni =====
+  // ===== Students Summary =====
 
-  @Get('alumni')
-  @ApiQuery({ name: 'graduationYear', required: false, type: Number })
-  @ApiQuery({ name: 'programStudy', required: false })
-  findAllAlumni(
-    @Query('graduationYear') graduationYear?: string,
-    @Query('programStudy') programStudy?: string,
+  @Get('summary')
+  @ApiQuery({ name: 'academicYearId', required: false })
+  @ApiQuery({ name: 'institutionId', required: false })
+  findAllStudentsSummary(
+    @Query('academicYearId') academicYearId?: string,
+    @Query('institutionId') institutionId?: string,
   ) {
-    return this.studentService.findAllAlumni({
-      graduationYear: graduationYear ? +graduationYear : undefined,
-      programStudy,
-    });
+    return this.studentService.findAllStudentsSummary({ academicYearId, institutionId });
   }
 
-  @Get('alumni/tracer-summary')
-  @ApiQuery({ name: 'graduationYear', required: false, type: Number })
-  getTracerStudySummary(@Query('graduationYear') graduationYear?: string) {
-    return this.studentService.getTracerStudySummary(
-      graduationYear ? +graduationYear : undefined,
-    );
+  @Post('summary')
+  createStudentsSummary(@Body() dto: CreateStudentsSummaryDto) {
+    return this.studentService.createStudentsSummary(dto);
   }
 
-  @Post('alumni')
-  createAlumni(@Body() dto: CreateAlumniDto) {
-    return this.studentService.createAlumni(dto);
+  @Put('summary/:id')
+  updateStudentsSummary(@Param('id') id: string, @Body() dto: CreateStudentsSummaryDto) {
+    return this.studentService.updateStudentsSummary(id, dto);
   }
 
-  @Put('alumni/:id')
-  updateAlumni(@Param('id') id: string, @Body() dto: CreateAlumniDto) {
-    return this.studentService.updateAlumni(id, dto);
+  @Delete('summary/:id')
+  removeStudentsSummary(@Param('id') id: string) {
+    return this.studentService.removeStudentsSummary(id);
   }
 
-  @Delete('alumni/:id')
-  removeAlumni(@Param('id') id: string) {
-    return this.studentService.removeAlumni(id);
-  }
+  // ===== Graduates Outcomes =====
 
-  // ===== Achievements =====
-
-  @Get('achievements')
-  @ApiQuery({ name: 'year', required: false, type: Number })
-  @ApiQuery({ name: 'category', required: false })
-  findAllAchievements(
-    @Query('year') year?: string,
-    @Query('category') category?: string,
+  @Get('graduates')
+  @ApiQuery({ name: 'academicYearId', required: false })
+  @ApiQuery({ name: 'institutionId', required: false })
+  findAllGraduates(
+    @Query('academicYearId') academicYearId?: string,
+    @Query('institutionId') institutionId?: string,
   ) {
-    return this.studentService.findAllAchievements({
-      year: year ? +year : undefined,
-      category,
-    });
+    return this.studentService.findAllGraduates({ academicYearId, institutionId });
   }
 
-  @Post('achievements')
-  createAchievement(@Body() dto: CreateAchievementDto) {
-    return this.studentService.createAchievement(dto);
+  @Post('graduates')
+  createGraduates(@Body() dto: CreateGraduatesDto) {
+    return this.studentService.createGraduates(dto);
   }
 
-  @Delete('achievements/:id')
-  removeAchievement(@Param('id') id: string) {
-    return this.studentService.removeAchievement(id);
+  @Put('graduates/:id')
+  updateGraduates(@Param('id') id: string, @Body() dto: CreateGraduatesDto) {
+    return this.studentService.updateGraduates(id, dto);
   }
 }

@@ -1,13 +1,13 @@
 import {
   Controller, Get, Post, Put, Delete,
-  Body, Param, Query, UseGuards, Request,
+  Body, Param, Query, UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { BkdService } from './bkd.service.js';
-import { CreateBkdDto } from './dto/create-bkd.dto.js';
+import { CreateLecturersSummaryDto } from './dto/create-bkd.dto.js';
 
-@ApiTags('BKD Reports')
+@ApiTags('Lecturers Summary')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('bkd')
@@ -15,16 +15,15 @@ export class BkdController {
   constructor(private bkdService: BkdService) {}
 
   @Get()
-  @ApiQuery({ name: 'userId', required: false })
-  @ApiQuery({ name: 'year', required: false, type: Number })
+  @ApiQuery({ name: 'academicYearId', required: false })
+  @ApiQuery({ name: 'institutionId', required: false })
+  @ApiQuery({ name: 'studyProgramId', required: false })
   findAll(
-    @Query('userId') userId?: string,
-    @Query('year') year?: string,
+    @Query('academicYearId') academicYearId?: string,
+    @Query('institutionId') institutionId?: string,
+    @Query('studyProgramId') studyProgramId?: string,
   ) {
-    return this.bkdService.findAll({
-      userId,
-      year: year ? +year : undefined,
-    });
+    return this.bkdService.findAll({ academicYearId, institutionId, studyProgramId });
   }
 
   @Get(':id')
@@ -33,12 +32,12 @@ export class BkdController {
   }
 
   @Post()
-  create(@Body() dto: CreateBkdDto, @Request() req: { user: { sub: string } }) {
-    return this.bkdService.create(dto, req.user.sub);
+  create(@Body() dto: CreateLecturersSummaryDto) {
+    return this.bkdService.create(dto);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() dto: CreateBkdDto) {
+  update(@Param('id') id: string, @Body() dto: CreateLecturersSummaryDto) {
     return this.bkdService.update(id, dto);
   }
 

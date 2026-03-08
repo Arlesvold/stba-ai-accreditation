@@ -1,18 +1,27 @@
-import { IsArray, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsUUID } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class GenerateLedDto {
-  @ApiProperty({ example: [1, 2, 3], description: 'Nomor kriteria yang akan di-generate' })
-  @IsArray()
-  @IsInt({ each: true })
-  criteria: number[];
+export class GenerateDocumentDto {
+  @ApiProperty({ description: 'ID of the document definition (e.g., LED, LKPS)' })
+  @IsUUID()
+  documentDefinitionId: string;
 
-  @ApiProperty({ example: 2024 })
-  @IsInt()
-  year: number;
+  @ApiProperty()
+  @IsUUID()
+  institutionId: string;
 
-  @ApiPropertyOptional({ example: 'docx', default: 'docx' })
+  @ApiPropertyOptional()
+  @IsUUID()
+  @IsOptional()
+  studyProgramId?: string;
+
+  @ApiPropertyOptional()
+  @IsUUID()
+  @IsOptional()
+  academicYearId?: string;
+
+  @ApiPropertyOptional({ example: 'Generate LED Kriteria 1-9' })
   @IsString()
   @IsOptional()
-  format?: string;
+  notes?: string;
 }

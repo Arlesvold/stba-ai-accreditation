@@ -1,41 +1,37 @@
 import {
-  Controller, Get, Post, Put, Body, Param, Query, UseGuards,
+  Controller, Get, Post, Delete, Body, Param, Query, UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RiskService } from './risk.service.js';
-import { CreateRiskAlertDto } from './dto/create-risk.dto.js';
+import { CreateValidationDto } from './dto/create-risk.dto.js';
 
-@ApiTags('Risk Alert')
+@ApiTags('Validation & Risk')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('risk')
 export class RiskController {
   constructor(private riskService: RiskService) {}
 
-  @Get('alerts')
-  @ApiQuery({ name: 'level', required: false, enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] })
-  @ApiQuery({ name: 'isResolved', required: false, type: Boolean })
-  @ApiQuery({ name: 'criteriaNo', required: false, type: Number })
-  findAllAlerts(
-    @Query('level') level?: string,
-    @Query('isResolved') isResolved?: string,
-    @Query('criteriaNo') criteriaNo?: string,
+  @Get('validations')
+  @ApiQuery({ name: 'documentOutputId', required: false })
+  @ApiQuery({ name: 'severity', required: false })
+  @ApiQuery({ name: 'validationType', required: false })
+  findAll(
+    @Query('documentOutputId') documentOutputId?: string,
+    @Query('severity') severity?: string,
+    @Query('validationType') validationType?: string,
   ) {
-    return this.riskService.findAllAlerts({
-      level,
-      isResolved: isResolved !== undefined ? isResolved === 'true' : undefined,
-      criteriaNo: criteriaNo ? +criteriaNo : undefined,
-    });
+    return this.riskService.findAll({ documentOutputId, severity, validationType });
   }
 
-  @Post('alerts')
-  createAlert(@Body() dto: CreateRiskAlertDto) {
-    return this.riskService.createAlert(dto);
+  @Post('validations')
+  create(@Body() dto: CreateValidationDto) {
+    return this.riskService.create(dto);
   }
 
-  @Put('alerts/:id/resolve')
-  resolveAlert(@Param('id') id: string) {
-    return this.riskService.resolveAlert(id);
+  @Delete('validations/:id')
+  remove(@Param('id') id: string) {
+    return this.riskService.remove(id);
   }
 }

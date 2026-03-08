@@ -1,43 +1,39 @@
-import { IsInt, IsNumber, IsString, IsOptional, Min, Max } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsOptional, IsInt, IsUUID, Min } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 
-export class UpdateScoreDto {
-  @ApiProperty({ example: 85 })
-  @IsNumber()
-  score: number;
+export class CreateVmtsDto {
+  @ApiProperty()
+  @IsUUID()
+  institutionId: string;
 
-  @ApiPropertyOptional({ example: 'Catatan evaluasi' })
-  @IsString()
+  @ApiPropertyOptional()
+  @IsUUID()
   @IsOptional()
-  notes?: string;
-}
+  studyProgramId?: string;
 
-export class CreateScoreDto {
-  @ApiProperty({ example: 1, description: 'Nomor kriteria (1-9)' })
-  @IsInt()
-  @Min(1)
-  @Max(9)
-  criteriaNo: number;
-
-  @ApiProperty({ example: 'VMTS' })
+  @ApiProperty({ example: 'Menjadi institusi bahasa asing terkemuka' })
   @IsString()
-  criteriaName: string;
+  vision: string;
 
-  @ApiProperty({ example: 85 })
-  @IsNumber()
-  score: number;
-
-  @ApiPropertyOptional({ example: 100 })
-  @IsNumber()
-  @IsOptional()
-  maxScore?: number;
-
-  @ApiProperty({ example: 2024 })
-  @IsInt()
-  year: number;
+  @ApiProperty({ example: 'Menyelenggarakan pendidikan bahasa yang bermutu' })
+  @IsString()
+  mission: string;
 
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
-  notes?: string;
+  goals?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  strategies?: string;
+
+  @ApiPropertyOptional({ example: 1 })
+  @IsInt()
+  @IsOptional()
+  @Min(1)
+  versionNo?: number;
 }
+
+export class UpdateVmtsDto extends PartialType(CreateVmtsDto) {}

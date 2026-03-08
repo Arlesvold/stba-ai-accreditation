@@ -1,36 +1,40 @@
-import { IsInt, IsString, IsNumber, IsOptional, Min, Max } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsUUID } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateIkuDto {
-  @ApiProperty({ example: 7, description: 'Nomor kriteria IAPT (1-9)' })
-  @IsInt()
-  @Min(1)
-  @Max(9)
-  criteriaNo: number;
+  @ApiProperty()
+  @IsUUID()
+  institutionId: string;
 
-  @ApiProperty({ example: 'Jumlah Publikasi Internasional' })
-  @IsString()
-  indicator: string;
-
-  @ApiProperty({ example: 20 })
-  @IsNumber()
-  target: number;
-
-  @ApiProperty({ example: 14 })
-  @IsNumber()
-  current: number;
-
-  @ApiProperty({ example: 2024 })
-  @IsInt()
-  year: number;
-
-  @ApiPropertyOptional({ example: 1 })
-  @IsInt()
+  @ApiPropertyOptional()
+  @IsUUID()
   @IsOptional()
-  semester?: number;
+  studyProgramId?: string;
 
-  @ApiPropertyOptional({ example: 'Catatan tambahan' })
+  @ApiProperty()
+  @IsUUID()
+  academicYearId: string;
+
+  @ApiProperty({ example: 'IKU-1' })
+  @IsString()
+  ikuCode: string;
+
+  @ApiProperty({ example: 85.5 })
+  @IsNumber()
+  valueNumeric: number;
+
+  @ApiPropertyOptional({ example: '%' })
   @IsString()
   @IsOptional()
-  notes?: string;
+  unit?: string;
+
+  @ApiPropertyOptional()
+  @IsUUID()
+  @IsOptional()
+  sourceUnitId?: string;
+
+  @ApiPropertyOptional({ example: 'PENDING' })
+  @IsString()
+  @IsOptional()
+  validationStatus?: string;
 }

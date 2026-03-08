@@ -4,28 +4,37 @@ import {
 import { ApiTags, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { AccreditationService } from './accreditation.service.js';
-import { CreateScoreDto, UpdateScoreDto } from './dto/accreditation.dto.js';
+import { CreateVmtsDto, UpdateVmtsDto } from './dto/accreditation.dto.js';
 
-@ApiTags('Accreditation Dashboard')
+@ApiTags('Accreditation')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('accreditation')
 export class AccreditationController {
   constructor(private accreditationService: AccreditationService) {}
 
-  @Get('readiness')
-  @ApiQuery({ name: 'year', required: false, type: Number })
-  getReadiness(@Query('year') year?: string) {
-    return this.accreditationService.getReadiness(year ? +year : undefined);
+  @Get('vmts')
+  @ApiQuery({ name: 'institutionId', required: false })
+  @ApiQuery({ name: 'studyProgramId', required: false })
+  getVmts(
+    @Query('institutionId') institutionId?: string,
+    @Query('studyProgramId') studyProgramId?: string,
+  ) {
+    return this.accreditationService.getVmts({ institutionId, studyProgramId });
   }
 
-  @Post('scores')
-  createScore(@Body() dto: CreateScoreDto) {
-    return this.accreditationService.createScore(dto);
+  @Post('vmts')
+  createVmts(@Body() dto: CreateVmtsDto) {
+    return this.accreditationService.createVmts(dto);
   }
 
-  @Put('scores/:id')
-  updateScore(@Param('id') id: string, @Body() dto: UpdateScoreDto) {
-    return this.accreditationService.updateScore(id, dto);
+  @Put('vmts/:id')
+  updateVmts(@Param('id') id: string, @Body() dto: UpdateVmtsDto) {
+    return this.accreditationService.updateVmts(id, dto);
+  }
+
+  @Get('readiness/:institutionId')
+  getReadiness(@Param('institutionId') institutionId: string) {
+    return this.accreditationService.getReadiness(institutionId);
   }
 }

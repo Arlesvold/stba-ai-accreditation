@@ -1,41 +1,59 @@
-import { IsString, IsInt, IsNumber, IsOptional, Min } from 'class-validator';
+import { IsInt, IsOptional, IsUUID, Min } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class CreateBkdDto {
-  @ApiProperty({ example: 'Ganjil' })
-  @IsString()
-  semester: string;
+export class CreateLecturersSummaryDto {
+  @ApiProperty()
+  @IsUUID()
+  institutionId: string;
 
-  @ApiProperty({ example: 2024 })
+  @ApiPropertyOptional()
+  @IsUUID()
+  @IsOptional()
+  studyProgramId?: string;
+
+  @ApiProperty()
+  @IsUUID()
+  academicYearId: string;
+
+  @ApiPropertyOptional({ example: 20 })
   @IsInt()
-  year: number;
+  @IsOptional()
+  @Min(0)
+  permanentCount?: number;
+
+  @ApiPropertyOptional({ example: 5 })
+  @IsInt()
+  @IsOptional()
+  @Min(0)
+  nonPermanentCount?: number;
+
+  @ApiPropertyOptional({ example: 15 })
+  @IsInt()
+  @IsOptional()
+  @Min(0)
+  mastersCount?: number;
+
+  @ApiPropertyOptional({ example: 5 })
+  @IsInt()
+  @IsOptional()
+  @Min(0)
+  doctoralCount?: number;
+
+  @ApiPropertyOptional({ example: 1 })
+  @IsInt()
+  @IsOptional()
+  @Min(0)
+  professorCount?: number;
+
+  @ApiPropertyOptional({ example: 3 })
+  @IsInt()
+  @IsOptional()
+  @Min(0)
+  associateProfessorCount?: number;
 
   @ApiPropertyOptional({ example: 12 })
-  @IsNumber()
+  @IsInt()
   @IsOptional()
   @Min(0)
-  teachingHours?: number;
-
-  @ApiPropertyOptional({ example: 6 })
-  @IsNumber()
-  @IsOptional()
-  @Min(0)
-  researchHours?: number;
-
-  @ApiPropertyOptional({ example: 4 })
-  @IsNumber()
-  @IsOptional()
-  @Min(0)
-  serviceHours?: number;
-
-  @ApiPropertyOptional({ example: 22 })
-  @IsNumber()
-  @IsOptional()
-  @Min(0)
-  totalCredits?: number;
-
-  @ApiPropertyOptional({ example: 'DRAFT' })
-  @IsString()
-  @IsOptional()
-  status?: string;
+  lecturerCertifiedCount?: number;
 }

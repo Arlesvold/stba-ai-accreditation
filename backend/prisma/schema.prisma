@@ -1,6 +1,7 @@
-// Prisma Schema - AI-Based Accreditation Intelligence System
-// STBA Pontianak (Sekolah Tinggi Bahasa Asing)
-// Status: Draft — akan disesuaikan setelah analisis kebutuhan client
+// Prisma Schema - AI-Based Accreditation Document Generation System
+// STBA Pontianak - MCP Server for Accreditation Documents
+// Pivoted: Document-centric (LED, LKPS, DKPS, LKPT, RPS, OBE, Evidence)
+// Database: PostgreSQL
 
 generator client {
   provider = "prisma-client"
@@ -8,304 +9,849 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
 }
 
-// ==================== USER & AUTH ====================
+// ============================================================
+// A. MASTER & ORGANISASI
+// ============================================================
+
+model Institution {
+  id              String   @id @default(uuid()) @db.Uuid
+  code            String   @unique
+  name            String
+  alias           String?
+  institutionType String?  @map("institution_type")
+  status          String?
+  city            String?
+  province        String?
+  address         String?  @db.Text
+  website         String?
+  email           String?
+  focusArea       String?  @map("focus_area")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  studyPrograms     StudyProgram[]
+  academicYears     AcademicYear[]
+  organizationUnits OrganizationUnit[]
+  users             User[]
+  vmts              VMTS[]
+  studentsSummary   StudentsSummary[]
+  graduatesOutcomes GraduatesOutcomes[]
+  lecturersSummary  LecturersSummary[]
+  educationSummary  EducationSummary[]
+  researchSummary   ResearchSummary[]
+  serviceSummary    ServiceSummary[]
+  financeSummary    FinanceSummary[]
+  facilitiesSummary FacilitiesSummary[]
+  ikuValues         IKUValue[]
+  evidenceDocuments EvidenceDocument[]
+  documentJobs      DocumentGenerationJob[]
+
+  @@map("institutions")
+}
+
+model StudyProgram {
+  id                  String   @id @default(uuid()) @db.Uuid
+  institutionId       String   @map("institution_id") @db.Uuid
+  institution         Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  code                String
+  name                String
+  degreeLevel         String?  @map("degree_level")
+  accreditationStatus String?  @map("accreditation_status")
+  isActive            Boolean  @default(true) @map("is_active")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  graduateProfiles    GraduateProfile[]
+  cpls                CPL[]
+  courses             Course[]
+  curriculumStructures CurriculumStructure[]
+  curriculumReviews   CurriculumReview[]
+  vmts                VMTS[]
+  studentsSummary     StudentsSummary[]
+  graduatesOutcomes   GraduatesOutcomes[]
+  lecturersSummary    LecturersSummary[]
+  educationSummary    EducationSummary[]
+  researchSummary     ResearchSummary[]
+  serviceSummary      ServiceSummary[]
+  facilitiesSummary   FacilitiesSummary[]
+  ikuValues           IKUValue[]
+  evidenceDocuments   EvidenceDocument[]
+  documentJobs        DocumentGenerationJob[]
+
+  @@unique([institutionId, code])
+  @@map("study_programs")
+}
+
+model AcademicYear {
+  id            String   @id @default(uuid()) @db.Uuid
+  institutionId String   @map("institution_id") @db.Uuid
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  yearLabel     String   @map("year_label")
+  startDate     DateTime @map("start_date")
+  endDate       DateTime @map("end_date")
+  isActive      Boolean  @default(false) @map("is_active")
+
+  studentsSummary   StudentsSummary[]
+  graduatesOutcomes GraduatesOutcomes[]
+  lecturersSummary  LecturersSummary[]
+  educationSummary  EducationSummary[]
+  researchSummary   ResearchSummary[]
+  serviceSummary    ServiceSummary[]
+  financeSummary    FinanceSummary[]
+  facilitiesSummary FacilitiesSummary[]
+  ikuValues         IKUValue[]
+  documentJobs      DocumentGenerationJob[]
+
+  @@unique([institutionId, yearLabel])
+  @@map("academic_years")
+}
+
+model OrganizationUnit {
+  id            String   @id @default(uuid()) @db.Uuid
+  institutionId String   @map("institution_id") @db.Uuid
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  code          String
+  name          String
+  unitType      String?  @map("unit_type")
+  parentUnitId  String?  @map("parent_unit_id") @db.Uuid
+  parentUnit    OrganizationUnit?  @relation("UnitHierarchy", fields: [parentUnitId], references: [id])
+  childUnits    OrganizationUnit[] @relation("UnitHierarchy")
+
+  evidenceDocuments EvidenceDocument[]
+  documentDefs      DocumentDefinition[]
+  ikuValues         IKUValue[]
+
+  @@unique([institutionId, code])
+  @@map("organization_units")
+}
+
+// ============================================================
+// B. KURIKULUM OBE
+// ============================================================
+
+model GraduateProfile {
+  id              String   @id @default(uuid()) @db.Uuid
+  studyProgramId  String   @map("study_program_id") @db.Uuid
+  studyProgram    StudyProgram @relation(fields: [studyProgramId], references: [id], onDelete: Cascade)
+  code            String
+  title           String
+  description     String?  @db.Text
+  stakeholderSource String? @map("stakeholder_source")
+  versionNo       Int      @default(1) @map("version_no")
+  isActive        Boolean  @default(true) @map("is_active")
+
+  @@map("graduate_profiles")
+}
+
+model CPL {
+  id             String   @id @default(uuid()) @db.Uuid
+  studyProgramId String   @map("study_program_id") @db.Uuid
+  studyProgram   StudyProgram @relation(fields: [studyProgramId], references: [id], onDelete: Cascade)
+  code           String
+  domainType     String?  @map("domain_type")
+  description    String   @db.Text
+  level          String?
+  versionNo      Int      @default(1) @map("version_no")
+  isActive       Boolean  @default(true) @map("is_active")
+
+  courseMap       CPLCourseMap[]
+  cpmkMap         CPMKCPLMap[]
+
+  @@unique([studyProgramId, code])
+  @@map("cpl")
+}
+
+model Course {
+  id                  String   @id @default(uuid()) @db.Uuid
+  studyProgramId      String   @map("study_program_id") @db.Uuid
+  studyProgram        StudyProgram @relation(fields: [studyProgramId], references: [id], onDelete: Cascade)
+  code                String
+  name                String
+  credits             Int
+  semesterRecommended Int?     @map("semester_recommended")
+  courseType           String?  @map("course_type")
+  isActive            Boolean  @default(true) @map("is_active")
+
+  cplMap              CPLCourseMap[]
+  prerequisites       CoursePrerequisite[] @relation("CourseMain")
+  prerequisiteOf      CoursePrerequisite[] @relation("CoursePrereq")
+  semesterPlans       CurriculumSemesterPlan[]
+  courseIdentity      CourseIdentity?
+  cpmks               CPMK[]
+  weeklyPlans         WeeklyPlan[]
+  gradingComponents   GradingComponent[]
+  rpsDocuments        RPSDocument[]
+
+  @@unique([studyProgramId, code])
+  @@map("courses")
+}
+
+model CoursePrerequisite {
+  id                   String @id @default(uuid()) @db.Uuid
+  courseId              String @map("course_id") @db.Uuid
+  course               Course @relation("CourseMain", fields: [courseId], references: [id], onDelete: Cascade)
+  prerequisiteCourseId String @map("prerequisite_course_id") @db.Uuid
+  prerequisiteCourse   Course @relation("CoursePrereq", fields: [prerequisiteCourseId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, prerequisiteCourseId])
+  @@map("course_prerequisites")
+}
+
+model CPLCourseMap {
+  id                String @id @default(uuid()) @db.Uuid
+  cplId             String @map("cpl_id") @db.Uuid
+  cpl               CPL    @relation(fields: [cplId], references: [id], onDelete: Cascade)
+  courseId           String @map("course_id") @db.Uuid
+  course            Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  contributionLevel String? @map("contribution_level")
+
+  @@unique([cplId, courseId])
+  @@map("cpl_course_map")
+}
+
+model CurriculumStructure {
+  id             String @id @default(uuid()) @db.Uuid
+  studyProgramId String @map("study_program_id") @db.Uuid
+  studyProgram   StudyProgram @relation(fields: [studyProgramId], references: [id], onDelete: Cascade)
+  versionNo      Int    @map("version_no")
+  curriculumName String @map("curriculum_name")
+  effectiveYear  Int    @map("effective_year")
+  totalCredits   Int    @map("total_credits")
+  status         String @default("DRAFT")
+
+  semesterPlans  CurriculumSemesterPlan[]
+
+  @@map("curriculum_structures")
+}
+
+model CurriculumSemesterPlan {
+  id                    String @id @default(uuid()) @db.Uuid
+  curriculumStructureId String @map("curriculum_structure_id") @db.Uuid
+  curriculumStructure   CurriculumStructure @relation(fields: [curriculumStructureId], references: [id], onDelete: Cascade)
+  semesterNo            Int    @map("semester_no")
+  courseId              String @map("course_id") @db.Uuid
+  course                Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  credits               Int
+
+  @@map("curriculum_semester_plans")
+}
+
+model CurriculumReview {
+  id                  String   @id @default(uuid()) @db.Uuid
+  studyProgramId      String   @map("study_program_id") @db.Uuid
+  studyProgram        StudyProgram @relation(fields: [studyProgramId], references: [id], onDelete: Cascade)
+  reviewYear          Int      @map("review_year")
+  stakeholderFeedback Json?    @map("stakeholder_feedback") @db.JsonB
+  changesSummary      String?  @map("changes_summary") @db.Text
+  approvedBy          String?  @map("approved_by")
+  approvedAt          DateTime? @map("approved_at")
+
+  @@map("curriculum_reviews")
+}
+
+// ============================================================
+// C. RPS (Rencana Pembelajaran Semester)
+// ============================================================
+
+model CourseIdentity {
+  id              String @id @default(uuid()) @db.Uuid
+  courseId         String @unique @map("course_id") @db.Uuid
+  course          Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  studyProgramId  String? @map("study_program_id") @db.Uuid
+  coordinatorName String? @map("coordinator_name")
+  semesterOffered String? @map("semester_offered")
+  language        String?
+  versionNo       Int    @default(1) @map("version_no")
+
+  @@map("course_identities")
+}
+
+model CPMK {
+  id          String @id @default(uuid()) @db.Uuid
+  courseId     String @map("course_id") @db.Uuid
+  course      Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  code        String
+  description String @db.Text
+
+  subCpmks    SubCPMK[]
+  cplMap      CPMKCPLMap[]
+
+  @@unique([courseId, code])
+  @@map("cpmk")
+}
+
+model SubCPMK {
+  id          String @id @default(uuid()) @db.Uuid
+  cpmkId      String @map("cpmk_id") @db.Uuid
+  cpmk        CPMK   @relation(fields: [cpmkId], references: [id], onDelete: Cascade)
+  code        String
+  description String @db.Text
+
+  weeklyPlans WeeklyPlan[]
+
+  @@map("sub_cpmk")
+}
+
+model CPMKCPLMap {
+  id     String @id @default(uuid()) @db.Uuid
+  cpmkId String @map("cpmk_id") @db.Uuid
+  cpmk   CPMK   @relation(fields: [cpmkId], references: [id], onDelete: Cascade)
+  cplId  String @map("cpl_id") @db.Uuid
+  cpl    CPL    @relation(fields: [cplId], references: [id], onDelete: Cascade)
+
+  @@unique([cpmkId, cplId])
+  @@map("cpmk_cpl_map")
+}
+
+model WeeklyPlan {
+  id              String  @id @default(uuid()) @db.Uuid
+  courseId         String  @map("course_id") @db.Uuid
+  course          Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  weekNo          Int     @map("week_no")
+  subCpmkId       String? @map("sub_cpmk_id") @db.Uuid
+  subCpmk         SubCPMK? @relation(fields: [subCpmkId], references: [id])
+  topic           String  @db.Text
+  learningMethod  String? @map("learning_method")
+  studentActivity String? @map("student_activity") @db.Text
+  assessmentMethod String? @map("assessment_method")
+  indicator       String?
+  notes           String? @db.Text
+
+  @@map("weekly_plans")
+}
+
+model GradingComponent {
+  id             String @id @default(uuid()) @db.Uuid
+  courseId        String @map("course_id") @db.Uuid
+  course         Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  componentName  String @map("component_name")
+  weightPct      Float  @map("weight_pct")
+  remedialPolicy String? @map("remedial_policy")
+
+  @@map("grading_components")
+}
+
+model RPSDocument {
+  id                      String    @id @default(uuid()) @db.Uuid
+  courseId                 String    @map("course_id") @db.Uuid
+  course                  Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  documentOutputId        String?   @map("document_output_id") @db.Uuid
+  documentOutput          DocumentOutput? @relation(fields: [documentOutputId], references: [id])
+  versionNo               Int       @default(1) @map("version_no")
+  status                  String    @default("DRAFT")
+  generatedFromTemplateId String?   @map("generated_from_template_id") @db.Uuid
+  generatedFromTemplate   DocumentTemplate? @relation(fields: [generatedFromTemplateId], references: [id])
+  approvedBy              String?   @map("approved_by")
+  approvedAt              DateTime? @map("approved_at")
+
+  @@map("rps_documents")
+}
+
+// ============================================================
+// D. DATA AKREDITASI INTI
+// ============================================================
+
+model VMTS {
+  id             String  @id @default(uuid()) @db.Uuid
+  institutionId  String  @map("institution_id") @db.Uuid
+  institution    Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  studyProgramId String? @map("study_program_id") @db.Uuid
+  studyProgram   StudyProgram? @relation(fields: [studyProgramId], references: [id])
+  vision         String  @db.Text
+  mission        String  @db.Text
+  goals          String? @db.Text
+  strategies     String? @db.Text
+  versionNo      Int     @default(1) @map("version_no")
+
+  @@map("vmts")
+}
+
+model StudentsSummary {
+  id                       String @id @default(uuid()) @db.Uuid
+  institutionId            String @map("institution_id") @db.Uuid
+  institution              Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  studyProgramId           String? @map("study_program_id") @db.Uuid
+  studyProgram             StudyProgram? @relation(fields: [studyProgramId], references: [id])
+  academicYearId           String @map("academic_year_id") @db.Uuid
+  academicYear             AcademicYear @relation(fields: [academicYearId], references: [id])
+  applicantsTotal          Int    @default(0) @map("applicants_total")
+  newStudentsTotal         Int    @default(0) @map("new_students_total")
+  activeStudentsTotal      Int    @default(0) @map("active_students_total")
+  dropoutRatePct           Float? @map("dropout_rate_pct")
+  studentAchievementsTotal Int    @default(0) @map("student_achievements_total")
+  mbkmStudentsTotal        Int    @default(0) @map("mbkm_students_total")
+
+  @@map("students_summary")
+}
+
+model GraduatesOutcomes {
+  id                   String @id @default(uuid()) @db.Uuid
+  institutionId        String @map("institution_id") @db.Uuid
+  institution          Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  studyProgramId       String? @map("study_program_id") @db.Uuid
+  studyProgram         StudyProgram? @relation(fields: [studyProgramId], references: [id])
+  academicYearId       String @map("academic_year_id") @db.Uuid
+  academicYear         AcademicYear @relation(fields: [academicYearId], references: [id])
+  avgGpa               Float? @map("avg_gpa")
+  avgStudyPeriodYears  Float? @map("avg_study_period_years")
+  employmentWaitMonths Float? @map("employment_wait_months")
+  fieldAlignmentPct    Float? @map("field_alignment_pct")
+  continuingStudyPct   Float? @map("continuing_study_pct")
+
+  @@map("graduates_outcomes")
+}
+
+model LecturersSummary {
+  id                     String @id @default(uuid()) @db.Uuid
+  institutionId          String @map("institution_id") @db.Uuid
+  institution            Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  studyProgramId         String? @map("study_program_id") @db.Uuid
+  studyProgram           StudyProgram? @relation(fields: [studyProgramId], references: [id])
+  academicYearId         String @map("academic_year_id") @db.Uuid
+  academicYear           AcademicYear @relation(fields: [academicYearId], references: [id])
+  permanentCount         Int    @default(0) @map("permanent_count")
+  nonPermanentCount      Int    @default(0) @map("non_permanent_count")
+  mastersCount           Int    @default(0) @map("masters_count")
+  doctoralCount          Int    @default(0) @map("doctoral_count")
+  professorCount         Int    @default(0) @map("professor_count")
+  associateProfessorCount Int   @default(0) @map("associate_professor_count")
+  lecturerCertifiedCount Int    @default(0) @map("lecturer_certified_count")
+
+  @@map("lecturers_summary")
+}
+
+model EducationSummary {
+  id                String @id @default(uuid()) @db.Uuid
+  institutionId     String @map("institution_id") @db.Uuid
+  institution       Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  studyProgramId    String? @map("study_program_id") @db.Uuid
+  studyProgram      StudyProgram? @relation(fields: [studyProgramId], references: [id])
+  academicYearId    String @map("academic_year_id") @db.Uuid
+  academicYear      AcademicYear @relation(fields: [academicYearId], references: [id])
+  obeImplementedPct Float? @map("obe_implemented_pct")
+  rpsCompletePct    Float? @map("rps_complete_pct")
+  mbkmCoursesPct    Float? @map("mbkm_courses_pct")
+  evaluationNotes   Json?  @map("evaluation_notes") @db.JsonB
+
+  @@map("education_summary")
+}
+
+model ResearchSummary {
+  id             String @id @default(uuid()) @db.Uuid
+  institutionId  String @map("institution_id") @db.Uuid
+  institution    Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  studyProgramId String? @map("study_program_id") @db.Uuid
+  studyProgram   StudyProgram? @relation(fields: [studyProgramId], references: [id])
+  academicYearId String @map("academic_year_id") @db.Uuid
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id])
+  grantsTotal    Int    @default(0) @map("grants_total")
+  publicationsTotal Int @default(0) @map("publications_total")
+  scopusTotal    Int    @default(0) @map("scopus_total")
+  iprTotal       Int    @default(0) @map("ipr_total")
+  citationTotal  Int    @default(0) @map("citation_total")
+
+  @@map("research_summary")
+}
+
+model ServiceSummary {
+  id             String @id @default(uuid()) @db.Uuid
+  institutionId  String @map("institution_id") @db.Uuid
+  institution    Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  studyProgramId String? @map("study_program_id") @db.Uuid
+  studyProgram   StudyProgram? @relation(fields: [studyProgramId], references: [id])
+  academicYearId String @map("academic_year_id") @db.Uuid
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id])
+  programsTotal  Int    @default(0) @map("programs_total")
+  partnersTotal  Int    @default(0) @map("partners_total")
+  outputsTotal   Int    @default(0) @map("outputs_total")
+
+  @@map("service_summary")
+}
+
+model FinanceSummary {
+  id                String @id @default(uuid()) @db.Uuid
+  institutionId     String @map("institution_id") @db.Uuid
+  institution       Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  academicYearId    String @map("academic_year_id") @db.Uuid
+  academicYear      AcademicYear @relation(fields: [academicYearId], references: [id])
+  operationalBudget Float? @map("operational_budget")
+  researchBudget    Float? @map("research_budget")
+  serviceBudget     Float? @map("service_budget")
+  scholarshipBudget Float? @map("scholarship_budget")
+
+  @@map("finance_summary")
+}
+
+model FacilitiesSummary {
+  id                     String  @id @default(uuid()) @db.Uuid
+  institutionId          String  @map("institution_id") @db.Uuid
+  institution            Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  studyProgramId         String? @map("study_program_id") @db.Uuid
+  studyProgram           StudyProgram? @relation(fields: [studyProgramId], references: [id])
+  academicYearId         String  @map("academic_year_id") @db.Uuid
+  academicYear           AcademicYear @relation(fields: [academicYearId], references: [id])
+  classroomsTotal        Int     @default(0) @map("classrooms_total")
+  labsTotal              Int     @default(0) @map("labs_total")
+  libraryCollectionsTotal Int    @default(0) @map("library_collections_total")
+  lmsAvailable           Boolean @default(false) @map("lms_available")
+  internetCoveragePct    Float?  @map("internet_coverage_pct")
+
+  @@map("facilities_summary")
+}
+
+model IKUValue {
+  id               String @id @default(uuid()) @db.Uuid
+  institutionId    String @map("institution_id") @db.Uuid
+  institution      Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  studyProgramId   String? @map("study_program_id") @db.Uuid
+  studyProgram     StudyProgram? @relation(fields: [studyProgramId], references: [id])
+  academicYearId   String @map("academic_year_id") @db.Uuid
+  academicYear     AcademicYear @relation(fields: [academicYearId], references: [id])
+  ikuCode          String @map("iku_code")
+  valueNumeric     Float  @map("value_numeric")
+  unit             String?
+  sourceUnitId     String? @map("source_unit_id") @db.Uuid
+  sourceUnit       OrganizationUnit? @relation(fields: [sourceUnitId], references: [id])
+  validationStatus String @default("PENDING") @map("validation_status")
+
+  @@map("iku_values")
+}
+
+// ============================================================
+// E. EVIDENCE STORE
+// ============================================================
+
+model EvidenceDocument {
+  id             String   @id @default(uuid()) @db.Uuid
+  institutionId  String   @map("institution_id") @db.Uuid
+  institution    Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  studyProgramId String?  @map("study_program_id") @db.Uuid
+  studyProgram   StudyProgram? @relation(fields: [studyProgramId], references: [id])
+  ownerUnitId    String?  @map("owner_unit_id") @db.Uuid
+  ownerUnit      OrganizationUnit? @relation(fields: [ownerUnitId], references: [id])
+  evidenceCode   String   @map("evidence_code")
+  title          String
+  documentType   String?  @map("document_type")
+  issueDate      DateTime? @map("issue_date")
+  expiryDate     DateTime? @map("expiry_date")
+  fileKey        String?  @map("file_key")
+  fileName       String?  @map("file_name")
+  mimeType       String?  @map("mime_type")
+  checksum       String?
+  sizeBytes      Int?     @map("size_bytes")
+  status         String   @default("draft")
+  uploadedAt     DateTime? @map("uploaded_at")
+
+  tags           EvidenceTag[]
+  mappings       EvidenceMapping[]
+  validations    EvidenceValidation[]
+
+  @@map("evidence_documents")
+}
+
+model EvidenceTag {
+  id                 String @id @default(uuid()) @db.Uuid
+  evidenceDocumentId String @map("evidence_document_id") @db.Uuid
+  evidenceDocument   EvidenceDocument @relation(fields: [evidenceDocumentId], references: [id], onDelete: Cascade)
+  tag                String
+
+  @@map("evidence_tags")
+}
+
+model EvidenceMapping {
+  id                   String  @id @default(uuid()) @db.Uuid
+  evidenceDocumentId   String  @map("evidence_document_id") @db.Uuid
+  evidenceDocument     EvidenceDocument @relation(fields: [evidenceDocumentId], references: [id], onDelete: Cascade)
+  documentDefinitionId String? @map("document_definition_id") @db.Uuid
+  documentDefinition   DocumentDefinition? @relation(fields: [documentDefinitionId], references: [id])
+  documentSectionId    String? @map("document_section_id") @db.Uuid
+  documentSection      DocumentSection? @relation(fields: [documentSectionId], references: [id])
+  criterionCode        String? @map("criterion_code")
+  mappingNote          String? @map("mapping_note") @db.Text
+
+  @@map("evidence_mappings")
+}
+
+model EvidenceValidation {
+  id                 String   @id @default(uuid()) @db.Uuid
+  evidenceDocumentId String   @map("evidence_document_id") @db.Uuid
+  evidenceDocument   EvidenceDocument @relation(fields: [evidenceDocumentId], references: [id], onDelete: Cascade)
+  validationResult   String   @map("validation_result")
+  validationNote     String?  @map("validation_note") @db.Text
+  validatedBy        String?  @map("validated_by")
+  validatedAt        DateTime? @map("validated_at")
+
+  @@map("evidence_validations")
+}
+
+// ============================================================
+// F. DOCUMENT REGISTRY
+// ============================================================
+
+model DocumentDefinition {
+  id                  String  @id @default(uuid()) @db.Uuid
+  documentCode        String  @unique @map("document_code")
+  documentName        String  @map("document_name")
+  level               String?
+  category            String?
+  isRequired          Boolean @default(false) @map("is_required")
+  outputFormatDefault String? @map("output_format_default")
+  ownerUnitId         String? @map("owner_unit_id") @db.Uuid
+  ownerUnit           OrganizationUnit? @relation(fields: [ownerUnitId], references: [id])
+  description         String? @db.Text
+
+  sections            DocumentSection[]
+  requirements        DocumentRequirement[]
+  templates           DocumentTemplate[]
+  evidenceMappings    EvidenceMapping[]
+  generationJobs      DocumentGenerationJob[]
+  documentOutputs     DocumentOutput[]
+
+  @@map("document_definitions")
+}
+
+model DocumentSection {
+  id                   String @id @default(uuid()) @db.Uuid
+  documentDefinitionId String @map("document_definition_id") @db.Uuid
+  documentDefinition   DocumentDefinition @relation(fields: [documentDefinitionId], references: [id], onDelete: Cascade)
+  sectionCode          String @map("section_code")
+  sectionName          String @map("section_name")
+  sectionOrder         Int    @map("section_order")
+  isRequired           Boolean @default(true) @map("is_required")
+  promptPolicyKey      String? @map("prompt_policy_key")
+  templateBlockKey     String? @map("template_block_key")
+
+  evidenceMappings     EvidenceMapping[]
+  sectionOutputs       DocumentSectionOutput[]
+  reviewComments       ReviewComment[]
+
+  @@unique([documentDefinitionId, sectionCode])
+  @@map("document_sections")
+}
+
+model DocumentRequirement {
+  id                   String  @id @default(uuid()) @db.Uuid
+  documentDefinitionId String  @map("document_definition_id") @db.Uuid
+  documentDefinition   DocumentDefinition @relation(fields: [documentDefinitionId], references: [id], onDelete: Cascade)
+  entityName           String  @map("entity_name")
+  fieldName            String  @map("field_name")
+  isRequired           Boolean @default(true) @map("is_required")
+  validationRule       String? @map("validation_rule")
+  notes                String? @db.Text
+
+  @@map("document_requirements")
+}
+
+model DocumentTemplate {
+  id                   String  @id @default(uuid()) @db.Uuid
+  documentDefinitionId String  @map("document_definition_id") @db.Uuid
+  documentDefinition   DocumentDefinition @relation(fields: [documentDefinitionId], references: [id], onDelete: Cascade)
+  templateName         String  @map("template_name")
+  templateFormat       String  @map("template_format")
+  fileKey              String? @map("file_key")
+  versionNo            Int     @default(1) @map("version_no")
+  isActive             Boolean @default(true) @map("is_active")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  rpsDocuments         RPSDocument[]
+
+  @@map("document_templates")
+}
+
+// ============================================================
+// G. HASIL GENERASI DOKUMEN
+// ============================================================
+
+model DocumentGenerationJob {
+  id                   String    @id @default(uuid()) @db.Uuid
+  documentDefinitionId String    @map("document_definition_id") @db.Uuid
+  documentDefinition   DocumentDefinition @relation(fields: [documentDefinitionId], references: [id])
+  institutionId        String    @map("institution_id") @db.Uuid
+  institution          Institution @relation(fields: [institutionId], references: [id])
+  studyProgramId       String?   @map("study_program_id") @db.Uuid
+  studyProgram         StudyProgram? @relation(fields: [studyProgramId], references: [id])
+  academicYearId       String?   @map("academic_year_id") @db.Uuid
+  academicYear         AcademicYear? @relation(fields: [academicYearId], references: [id])
+  requestedBy          String    @map("requested_by")
+  jobStatus            String    @default("PENDING") @map("job_status")
+  startedAt            DateTime? @map("started_at")
+  finishedAt           DateTime? @map("finished_at")
+  inputSnapshot        Json?     @map("input_snapshot") @db.JsonB
+  notes                String?   @db.Text
+
+  outputs              DocumentOutput[]
+  toolExecutions       ToolExecutionLog[]
+
+  @@map("document_generation_jobs")
+}
+
+model DocumentOutput {
+  id                      String    @id @default(uuid()) @db.Uuid
+  documentGenerationJobId String    @map("document_generation_job_id") @db.Uuid
+  documentGenerationJob   DocumentGenerationJob @relation(fields: [documentGenerationJobId], references: [id], onDelete: Cascade)
+  documentDefinitionId    String    @map("document_definition_id") @db.Uuid
+  documentDefinition      DocumentDefinition @relation(fields: [documentDefinitionId], references: [id])
+  versionNo               Int       @default(1) @map("version_no")
+  title                   String
+  status                  String    @default("draft")
+  docxFileKey             String?   @map("docx_file_key")
+  pdfFileKey              String?   @map("pdf_file_key")
+  xlsxFileKey             String?   @map("xlsx_file_key")
+  generatedAt             DateTime? @map("generated_at")
+
+  sectionOutputs          DocumentSectionOutput[]
+  reviewComments          ReviewComment[]
+  approvals               Approval[]
+  validationResults       ValidationResult[]
+  rpsDocuments            RPSDocument[]
+
+  @@map("document_outputs")
+}
+
+model DocumentSectionOutput {
+  id                String @id @default(uuid()) @db.Uuid
+  documentOutputId  String @map("document_output_id") @db.Uuid
+  documentOutput    DocumentOutput @relation(fields: [documentOutputId], references: [id], onDelete: Cascade)
+  documentSectionId String @map("document_section_id") @db.Uuid
+  documentSection   DocumentSection @relation(fields: [documentSectionId], references: [id])
+  sectionText       String @map("section_text") @db.Text
+  sourceSnapshot    Json?  @map("source_snapshot") @db.JsonB
+  generationMeta    Json?  @map("generation_meta") @db.JsonB
+
+  @@map("document_section_outputs")
+}
+
+// ============================================================
+// H. REVIEW, APPROVAL & AUDIT
+// ============================================================
+
+model ReviewComment {
+  id                String   @id @default(uuid()) @db.Uuid
+  documentOutputId  String   @map("document_output_id") @db.Uuid
+  documentOutput    DocumentOutput @relation(fields: [documentOutputId], references: [id], onDelete: Cascade)
+  documentSectionId String?  @map("document_section_id") @db.Uuid
+  documentSection   DocumentSection? @relation(fields: [documentSectionId], references: [id])
+  commentType       String?  @map("comment_type")
+  commentText       String   @map("comment_text") @db.Text
+  createdBy         String   @map("created_by")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  @@map("review_comments")
+}
+
+model Approval {
+  id               String    @id @default(uuid()) @db.Uuid
+  documentOutputId String    @map("document_output_id") @db.Uuid
+  documentOutput   DocumentOutput @relation(fields: [documentOutputId], references: [id], onDelete: Cascade)
+  approvalStage    String    @map("approval_stage")
+  approverId       String    @map("approver_id")
+  approvalStatus   String    @map("approval_status")
+  approvalNote     String?   @map("approval_note") @db.Text
+  approvedAt       DateTime? @map("approved_at")
+
+  @@map("approvals")
+}
+
+model ValidationResult {
+  id               String   @id @default(uuid()) @db.Uuid
+  documentOutputId String   @map("document_output_id") @db.Uuid
+  documentOutput   DocumentOutput @relation(fields: [documentOutputId], references: [id], onDelete: Cascade)
+  validationType   String   @map("validation_type")
+  severity         String
+  ruleCode         String?  @map("rule_code")
+  message          String   @db.Text
+  details          Json?    @db.JsonB
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@map("validation_results")
+}
+
+model ChangeLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  entityName String   @map("entity_name")
+  recordId   String   @map("record_id")
+  changeType String   @map("change_type")
+  beforeData Json?    @map("before_data") @db.JsonB
+  afterData  Json?    @map("after_data") @db.JsonB
+  changedBy  String   @map("changed_by")
+  changedAt  DateTime @default(now()) @map("changed_at")
+
+  @@index([entityName, recordId])
+  @@map("change_logs")
+}
+
+// ============================================================
+// I. USER & AKSES
+// ============================================================
 
 model User {
-  id         String   @id @default(uuid())
-  name       String
-  email      String   @unique
-  password   String
-  role       Role     @default(DOSEN)
-  nidn       String?  @unique
-  department String?
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id            String   @id @default(uuid()) @db.Uuid
+  institutionId String?  @map("institution_id") @db.Uuid
+  institution   Institution? @relation(fields: [institutionId], references: [id])
+  fullName      String   @map("full_name")
+  email         String   @unique
+  passwordHash  String   @map("password_hash")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
-  // Relations
-  publications Publication[]
-  grants       ResearchGrant[]
-  hki          HKI[]
-  bkdReports   BKDReport[]
-  alumni       Alumni[]
-  achievements StudentAchievement[]
+  userRoles     UserRole[]
 
   @@map("users")
 }
 
-enum Role {
-  SUPER_ADMIN
-  ADMIN
-  PIMPINAN
-  DOSEN
-  STAFF
+model Role {
+  id       String @id @default(uuid()) @db.Uuid
+  roleCode String @unique @map("role_code")
+  roleName String @map("role_name")
+
+  userRoles UserRole[]
+
+  @@map("roles")
 }
 
-// ==================== PUBLIKASI & RISET ====================
+model UserRole {
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId String @map("role_id") @db.Uuid
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
-model Publication {
-  id         String          @id @default(uuid())
-  title      String
-  abstract   String?         @db.Text
-  journal    String
-  sintaLevel String?
-  doi        String?
-  year       Int
-  citations  Int             @default(0)
-  type       PublicationType
-  authorId   String
-  author     User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  createdAt  DateTime        @default(now())
-
-  @@index([authorId])
-  @@index([year])
-  @@map("publications")
+  @@unique([userId, roleId])
+  @@map("user_roles")
 }
 
-enum PublicationType {
-  JOURNAL
-  CONFERENCE
-  BOOK
-  CHAPTER
+// ============================================================
+// J. WORKFLOW MCP TOOLS
+// ============================================================
+
+model ToolRegistry {
+  id           String  @id @default(uuid()) @db.Uuid
+  toolCode     String  @unique @map("tool_code")
+  toolName     String  @map("tool_name")
+  inputSchema  Json?   @map("input_schema") @db.JsonB
+  outputSchema Json?   @map("output_schema") @db.JsonB
+  isActive     Boolean @default(true) @map("is_active")
+
+  executionLogs ToolExecutionLog[]
+
+  @@map("tool_registry")
 }
 
-model ResearchGrant {
-  id        String   @id @default(uuid())
-  title     String
-  source    String
-  amount    Float
-  year      Int
-  status    GrantStatus @default(ACTIVE)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model ToolExecutionLog {
+  id                      String    @id @default(uuid()) @db.Uuid
+  toolRegistryId          String    @map("tool_registry_id") @db.Uuid
+  toolRegistry            ToolRegistry @relation(fields: [toolRegistryId], references: [id])
+  documentGenerationJobId String?   @map("document_generation_job_id") @db.Uuid
+  documentGenerationJob   DocumentGenerationJob? @relation(fields: [documentGenerationJobId], references: [id])
+  inputPayload            Json?     @map("input_payload") @db.JsonB
+  outputPayload           Json?     @map("output_payload") @db.JsonB
+  executionStatus         String    @map("execution_status")
+  startedAt               DateTime? @map("started_at")
+  finishedAt              DateTime? @map("finished_at")
 
-  @@index([userId])
-  @@map("research_grants")
-}
-
-enum GrantStatus {
-  ACTIVE
-  COMPLETED
-  CANCELLED
-}
-
-model HKI {
-  id          String   @id @default(uuid())
-  title       String
-  type        String
-  regNumber   String?
-  year        Int
-  status      String   @default("REGISTERED")
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-
-  @@index([userId])
-  @@map("hki")
-}
-
-model BKDReport {
-  id             String   @id @default(uuid())
-  userId         String
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  semester       String
-  year           Int
-  teachingHours  Float    @default(0)
-  researchHours  Float    @default(0)
-  serviceHours   Float    @default(0)
-  totalCredits   Float    @default(0)
-  fileUrl        String?
-  status         String   @default("DRAFT")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  @@index([userId])
-  @@map("bkd_reports")
-}
-
-// ==================== IKU (Indikator Kinerja Utama) ====================
-
-model IKUData {
-  id         String   @id @default(uuid())
-  criteriaNo Int
-  indicator  String
-  target     Float
-  current    Float
-  year       Int
-  semester   Int?
-  notes      String?  @db.Text
-  updatedBy  String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@index([criteriaNo, year])
-  @@map("iku_data")
-}
-
-// ==================== AKREDITASI ====================
-
-model AccreditationScore {
-  id           String   @id @default(uuid())
-  criteriaNo   Int
-  criteriaName String
-  score        Float
-  maxScore     Float    @default(100)
-  year         Int
-  notes        String?  @db.Text
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@index([criteriaNo, year])
-  @@map("accreditation_scores")
-}
-
-// ==================== RISK ALERT ====================
-
-model RiskAlert {
-  id             String     @id @default(uuid())
-  criteriaNo     Int
-  level          AlertLevel
-  message        String     @db.Text
-  recommendation String?    @db.Text
-  isResolved     Boolean    @default(false)
-  resolvedAt     DateTime?
-  createdAt      DateTime   @default(now())
-
-  @@index([criteriaNo, isResolved])
-  @@map("risk_alerts")
-}
-
-enum AlertLevel {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
-}
-
-// ==================== LED (Laporan Evaluasi Diri) ====================
-
-model LEDDocument {
-  id          String    @id @default(uuid())
-  title       String
-  year        Int
-  status      LEDStatus @default(DRAFT)
-  fileUrl     String?
-  generatedBy String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@map("led_documents")
-}
-
-enum LEDStatus {
-  DRAFT
-  PROCESSING
-  COMPLETED
-  FAILED
-}
-
-// ==================== STUDENT & ALUMNI ====================
-
-model Alumni {
-  id              String   @id @default(uuid())
-  nim             String   @unique
-  name            String
-  graduationYear  Int
-  programStudy    String
-  employmentStatus String?
-  company         String?
-  position        String?
-  waitingMonths   Int?
-  salary          Float?
-  surveyYear      Int?
-  userId          String?
-  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  @@index([graduationYear])
-  @@map("alumni")
-}
-
-model StudentAchievement {
-  id          String           @id @default(uuid())
-  studentName String
-  nim         String?
-  title       String
-  category    AchievementLevel
-  type        String
-  organizer   String?
-  year        Int
-  rank        String?
-  userId      String?
-  user        User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
-  createdAt   DateTime         @default(now())
-
-  @@index([year])
-  @@map("student_achievements")
-}
-
-enum AchievementLevel {
-  REGIONAL
-  NATIONAL
-  INTERNATIONAL
-}
-
-// ==================== SPMI (Sistem Penjaminan Mutu Internal) ====================
-
-model SPMICycle {
-  id          String     @id @default(uuid())
-  name        String
-  year        Int
-  phase       SPMIPhase
-  description String?    @db.Text
-  status      String     @default("IN_PROGRESS")
-  startDate   DateTime?
-  endDate     DateTime?
-  findings    String?    @db.Text
-  followUp    String?    @db.Text
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-  @@index([year, phase])
-  @@map("spmi_cycles")
-}
-
-enum SPMIPhase {
-  PENETAPAN
-  PELAKSANAAN
-  EVALUASI
-  PENGENDALIAN
-  PENINGKATAN
-}
-
-// ==================== KERJASAMA / MoU ====================
-
-model Cooperation {
-  id            String          @id @default(uuid())
-  partnerName   String
-  partnerType   String
-  scope         CooperationScope
-  title         String
-  description   String?         @db.Text
-  startDate     DateTime
-  endDate       DateTime?
-  status        String          @default("ACTIVE")
-  documentUrl   String?
-  contactPerson String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-
-  @@index([scope, status])
-  @@map("cooperations")
-}
-
-enum CooperationScope {
-  NATIONAL
-  INTERNATIONAL
+  @@map("tool_execution_logs")
 }

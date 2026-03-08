@@ -1,88 +1,92 @@
-import { IsString, IsInt, IsNumber, IsOptional, IsEnum, Min } from 'class-validator';
+import { IsInt, IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class CreateAlumniDto {
-  @ApiProperty({ example: '2020001' })
-  @IsString()
-  nim: string;
+export class CreateStudentsSummaryDto {
+  @ApiProperty()
+  @IsUUID()
+  institutionId: string;
 
-  @ApiProperty({ example: 'John Doe' })
-  @IsString()
-  name: string;
-
-  @ApiProperty({ example: 2024 })
-  @IsInt()
-  graduationYear: number;
-
-  @ApiProperty({ example: 'Sastra Inggris' })
-  @IsString()
-  programStudy: string;
-
-  @ApiPropertyOptional({ example: 'Employed' })
-  @IsString()
+  @ApiPropertyOptional()
+  @IsUUID()
   @IsOptional()
-  employmentStatus?: string;
+  studyProgramId?: string;
 
-  @ApiPropertyOptional({ example: 'PT ABC' })
-  @IsString()
-  @IsOptional()
-  company?: string;
+  @ApiProperty()
+  @IsUUID()
+  academicYearId: string;
 
-  @ApiPropertyOptional({ example: 'Translator' })
-  @IsString()
-  @IsOptional()
-  position?: string;
-
-  @ApiPropertyOptional({ example: 3 })
+  @ApiPropertyOptional({ example: 200 })
   @IsInt()
   @IsOptional()
   @Min(0)
-  waitingMonths?: number;
+  applicantsTotal?: number;
 
-  @ApiPropertyOptional({ example: 5000000 })
+  @ApiPropertyOptional({ example: 100 })
+  @IsInt()
+  @IsOptional()
+  @Min(0)
+  newStudentsTotal?: number;
+
+  @ApiPropertyOptional({ example: 350 })
+  @IsInt()
+  @IsOptional()
+  @Min(0)
+  activeStudentsTotal?: number;
+
+  @ApiPropertyOptional({ example: 5.2 })
   @IsNumber()
   @IsOptional()
-  salary?: number;
+  dropoutRatePct?: number;
 
-  @ApiPropertyOptional({ example: 2025 })
+  @ApiPropertyOptional({ example: 15 })
   @IsInt()
   @IsOptional()
-  surveyYear?: number;
+  @Min(0)
+  studentAchievementsTotal?: number;
+
+  @ApiPropertyOptional({ example: 25 })
+  @IsInt()
+  @IsOptional()
+  @Min(0)
+  mbkmStudentsTotal?: number;
 }
 
-export class CreateAchievementDto {
-  @ApiProperty({ example: 'John Doe' })
-  @IsString()
-  studentName: string;
+export class CreateGraduatesDto {
+  @ApiProperty()
+  @IsUUID()
+  institutionId: string;
 
-  @ApiPropertyOptional({ example: '2020001' })
-  @IsString()
+  @ApiPropertyOptional()
+  @IsUUID()
   @IsOptional()
-  nim?: string;
+  studyProgramId?: string;
 
-  @ApiProperty({ example: 'Juara 1 Debat Bahasa Inggris' })
-  @IsString()
-  title: string;
+  @ApiProperty()
+  @IsUUID()
+  academicYearId: string;
 
-  @ApiProperty({ example: 'NATIONAL', enum: ['REGIONAL', 'NATIONAL', 'INTERNATIONAL'] })
-  @IsEnum({ REGIONAL: 'REGIONAL', NATIONAL: 'NATIONAL', INTERNATIONAL: 'INTERNATIONAL' })
-  category: 'REGIONAL' | 'NATIONAL' | 'INTERNATIONAL';
-
-  @ApiProperty({ example: 'Academic' })
-  @IsString()
-  type: string;
-
-  @ApiPropertyOptional({ example: 'Kemendikbud' })
-  @IsString()
+  @ApiPropertyOptional({ example: 3.45 })
+  @IsNumber()
   @IsOptional()
-  organizer?: string;
+  avgGpa?: number;
 
-  @ApiProperty({ example: 2024 })
-  @IsInt()
-  year: number;
-
-  @ApiPropertyOptional({ example: 'Juara 1' })
-  @IsString()
+  @ApiPropertyOptional({ example: 4.2 })
+  @IsNumber()
   @IsOptional()
-  rank?: string;
+  avgStudyPeriodYears?: number;
+
+  @ApiPropertyOptional({ example: 3.5 })
+  @IsNumber()
+  @IsOptional()
+  employmentWaitMonths?: number;
+
+  @ApiPropertyOptional({ example: 78.5 })
+  @IsNumber()
+  @IsOptional()
+  fieldAlignmentPct?: number;
+
+  @ApiPropertyOptional({ example: 12.0 })
+  @IsNumber()
+  @IsOptional()
+  continuingStudyPct?: number;
 }

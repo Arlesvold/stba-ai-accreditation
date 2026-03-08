@@ -1,59 +1,84 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { GenerateLedDto } from './dto/generate-led.dto.js';
+import { GenerateDocumentDto } from './dto/generate-led.dto.js';
 
 @Injectable()
 export class LedService {
   constructor(private prisma: PrismaService) {}
 
-  async generate(dto: GenerateLedDto, userId: string) {
-    // Create LED document record with PROCESSING status
-    // Actual AI generation will be implemented by the AI team later
-    const doc = await this.prisma.lEDDocument.create({
+  async generate(dto: GenerateDocumentDto, userId: string) {
+    const job = await this.prisma.documentGenerationJob.create({
       data: {
-        title: `LED ${dto.year} - Kriteria ${dto.criteria.join(', ')}`,
-        year: dto.year,
-        status: 'PROCESSING',
-        generatedBy: userId,
+        documentDefinitionId: dto.documentDefinitionId,
+        institutionId: dto.institutionId,
+        studyProgramId: dto.studyProgramId,
+        academicYearId: dto.academicYearId,
+        requestedBy: userId,
+        jobStatus: 'PENDING',
+        notes: dto.notes,
       },
     });
 
     return {
       success: true,
       data: {
-        jobId: doc.id,
-        status: 'processing',
-        estimatedTime: '2 minutes',
+        jobId: job.id,
+        status: 'pending',
       },
     };
   }
 
   async getStatus(jobId: string) {
-    const doc = await this.prisma.lEDDocument.findUnique({ where: { id: jobId } });
-    if (!doc) throw new NotFoundException('LED document tidak ditemukan');
+    const job = await this.prisma.documentGenerationJob.findUnique({
+      where: { id: jobId },
+      include: { outputs: true },
+    });
+    if (!job) throw new NotFoundException('Document generation job tidak ditemukan');
 
     return {
       success: true,
       data: {
-        jobId: doc.id,
-        status: doc.status.toLowerCase(),
-        fileUrl: doc.fileUrl,
+        jobId: job.id,
+        status: job.jobStatus.toLowerCase(),
+        outputs: job.outputs,
+        startedAt: job.startedAt,
+        finishedAt: job.finishedAt,
       },
     };
   }
 
   async getDownload(jobId: string) {
-    const doc = await this.prisma.lEDDocument.findUnique({ where: { id: jobId } });
-    if (!doc) throw new NotFoundException('LED document tidak ditemukan');
-    if (!doc.fileUrl) throw new NotFoundException('File belum tersedia');
+    const job = await this.prisma.documentGenerationJob.findUnique({
+      where: { id: jobId },
+      include: { outputs: true },
+    });
+    if (!job) throw new NotFoundException('Document generation job tidak ditemukan');
+
+    const output = job.outputs[0];
+    if (!output) throw new NotFoundException('Output belum tersedia');
 
     return {
       success: true,
       data: {
-        jobId: doc.id,
-        fileUrl: doc.fileUrl,
-        title: doc.title,
+        jobId: job.id,
+        docxFileKey: output.docxFileKey,
+        pdfFileKey: output.pdfFileKey,
+        title: output.title,
       },
     };
+  }
+
+  async findAllJobs(query: { institutionId?: string; status?: string }) {
+    const where: Record<string, unknown> = {};
+    if (query.institutionId) where.institutionId = query.institutionId;
+    if (query.status) where.jobStatus = query.status;
+
+    const data = await this.prisma.documentGenerationJob.findMany({
+      where,
+      include: { documentDefinition: true, outputs: true },
+      orderBy: { startedAt: 'desc' },
+    });
+
+    return { success: true, data, meta: { total: data.length } };
   }
 }

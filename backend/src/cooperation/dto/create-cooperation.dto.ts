@@ -1,49 +1,34 @@
-import { IsString, IsOptional, IsEnum, IsDateString } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsOptional, IsInt, IsUUID } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 
-export class CreateCooperationDto {
-  @ApiProperty({ example: 'Universitas Tanjungpura' })
-  @IsString()
-  partnerName: string;
+export class CreateServiceSummaryDto {
+  @ApiProperty({ example: 'uuid-institution' })
+  @IsUUID()
+  institutionId: string;
 
-  @ApiProperty({ example: 'University' })
-  @IsString()
-  partnerType: string;
-
-  @ApiProperty({ example: 'NATIONAL', enum: ['NATIONAL', 'INTERNATIONAL'] })
-  @IsEnum({ NATIONAL: 'NATIONAL', INTERNATIONAL: 'INTERNATIONAL' })
-  scope: 'NATIONAL' | 'INTERNATIONAL';
-
-  @ApiProperty({ example: 'MoU Pertukaran Mahasiswa' })
-  @IsString()
-  title: string;
-
-  @ApiPropertyOptional({ example: 'Kerjasama pertukaran mahasiswa program Sastra Inggris' })
-  @IsString()
+  @ApiPropertyOptional({ example: 'uuid-study-program' })
+  @IsUUID()
   @IsOptional()
-  description?: string;
+  studyProgramId?: string;
 
-  @ApiProperty({ example: '2024-01-01' })
-  @IsDateString()
-  startDate: string;
+  @ApiProperty({ example: 'uuid-academic-year' })
+  @IsUUID()
+  academicYearId: string;
 
-  @ApiPropertyOptional({ example: '2027-01-01' })
-  @IsDateString()
+  @ApiPropertyOptional({ example: 5 })
+  @IsInt()
   @IsOptional()
-  endDate?: string;
+  programsTotal?: number;
 
-  @ApiPropertyOptional({ example: 'ACTIVE' })
-  @IsString()
+  @ApiPropertyOptional({ example: 12 })
+  @IsInt()
   @IsOptional()
-  status?: string;
+  partnersTotal?: number;
 
-  @ApiPropertyOptional({ example: 'https://docs.example.com/mou.pdf' })
-  @IsString()
+  @ApiPropertyOptional({ example: 8 })
+  @IsInt()
   @IsOptional()
-  documentUrl?: string;
-
-  @ApiPropertyOptional({ example: 'Dr. Smith' })
-  @IsString()
-  @IsOptional()
-  contactPerson?: string;
+  outputsTotal?: number;
 }
+
+export class UpdateServiceSummaryDto extends PartialType(CreateServiceSummaryDto) {}

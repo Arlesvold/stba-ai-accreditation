@@ -1,48 +1,51 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { CreateCooperationDto } from './dto/create-cooperation.dto.js';
+import { CreateServiceSummaryDto } from './dto/create-cooperation.dto.js';
 
 @Injectable()
 export class CooperationService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(query: { scope?: string; status?: string }) {
+  async findAll(query: { institutionId?: string; academicYearId?: string }) {
     const where: Record<string, unknown> = {};
-    if (query.scope) where.scope = query.scope;
-    if (query.status) where.status = query.status;
+    if (query.institutionId) where.institutionId = query.institutionId;
+    if (query.academicYearId) where.academicYearId = query.academicYearId;
 
-    const data = await this.prisma.cooperation.findMany({
+    const data = await this.prisma.serviceSummary.findMany({
       where,
-      orderBy: { startDate: 'desc' },
+      include: { institution: true, academicYear: true, studyProgram: true },
     });
 
     return { success: true, data, meta: { total: data.length } };
   }
 
   async findOne(id: string) {
-    const data = await this.prisma.cooperation.findUnique({ where: { id } });
-    if (!data) throw new NotFoundException('Cooperation not found');
+    const data = await this.prisma.serviceSummary.findUnique({
+      where: { id },
+      include: { institution: true, academicYear: true, studyProgram: true },
+    });
+    if (!data) throw new NotFoundException('Service summary not found');
     return { success: true, data };
   }
 
-  async create(dto: CreateCooperationDto) {
-    const data = await this.prisma.cooperation.create({ data: dto });
-    return { success: true, data, message: 'Kerjasama berhasil ditambahkan' };
+  async create(dto: CreateServiceSummaryDto) {
+    const data = await this.prisma.serviceSummary.create({ data: dto });
+    return { success: true, data, message: 'Service summary created' };
   }
 
-  async update(id: string, dto: Partial<CreateCooperationDto>) {
-    const existing = await this.prisma.cooperation.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException('Cooperation not found');
+  async update(id: string, dto: Partial<CreateServiceSummaryDto>) {
+    const existing = await this.prisma.serviceSummary.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Service summary not found');
 
-    const data = await this.prisma.cooperation.update({ where: { id }, data: dto });
-    return { success: true, data, message: 'Kerjasama berhasil diupdate' };
+    const data = await this.prisma.serviceSummary.update({ where: { id }, data: dto });
+    return { success: true, data, message: 'Service summary updated' };
   }
 
   async remove(id: string) {
-    const existing = await this.prisma.cooperation.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException('Cooperation not found');
+    const existing = await this.prisma.serviceSummary.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Service summary not found');
 
-    await this.prisma.cooperation.delete({ where: { id } });
-    return { success: true, data: null, message: 'Kerjasama berhasil dihapus' };
+    await this.prisma.serviceSummary.delete({ where: { id } });
+    return { success: true, data: null, message: 'Service summary deleted' };
   }
 }

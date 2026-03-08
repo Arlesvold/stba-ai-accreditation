@@ -1,81 +1,43 @@
 import {
-  Controller, Get, Post, Body, Query, UseGuards, Request,
+  Controller, Get, Post, Put, Delete,
+  Body, Param, Query, UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { ResearchService } from './research.service.js';
-import { CreatePublicationDto, CreateGrantDto, CreateHkiDto } from './dto/create-research.dto.js';
+import { CreateResearchSummaryDto } from './dto/create-research.dto.js';
 
-@ApiTags('Research Analytics')
+@ApiTags('Research Summary')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('research')
 export class ResearchController {
   constructor(private researchService: ResearchService) {}
 
-  // ==================== PUBLICATIONS ====================
-
-  @Get('publications')
-  @ApiQuery({ name: 'lecturerId', required: false })
-  @ApiQuery({ name: 'year', required: false, type: Number })
-  @ApiQuery({ name: 'type', required: false, enum: ['JOURNAL', 'CONFERENCE', 'BOOK', 'CHAPTER'] })
-  @ApiQuery({ name: 'sintaLevel', required: false })
-  findAllPublications(
-    @Query('lecturerId') lecturerId?: string,
-    @Query('year') year?: string,
-    @Query('type') type?: string,
-    @Query('sintaLevel') sintaLevel?: string,
+  @Get()
+  @ApiQuery({ name: 'academicYearId', required: false })
+  @ApiQuery({ name: 'studyProgramId', required: false })
+  @ApiQuery({ name: 'institutionId', required: false })
+  findAll(
+    @Query('academicYearId') academicYearId?: string,
+    @Query('studyProgramId') studyProgramId?: string,
+    @Query('institutionId') institutionId?: string,
   ) {
-    return this.researchService.findAllPublications({
-      lecturerId,
-      year: year ? +year : undefined,
-      type,
-      sintaLevel,
-    });
+    return this.researchService.findAll({ academicYearId, studyProgramId, institutionId });
   }
 
-  @Post('publications')
-  createPublication(@Body() dto: CreatePublicationDto, @Request() req: { user: { sub: string } }) {
-    return this.researchService.createPublication(dto, req.user.sub);
+  @Post()
+  create(@Body() dto: CreateResearchSummaryDto) {
+    return this.researchService.create(dto);
   }
 
-  // ==================== GRANTS ====================
-
-  @Get('grants')
-  @ApiQuery({ name: 'userId', required: false })
-  @ApiQuery({ name: 'year', required: false, type: Number })
-  findAllGrants(
-    @Query('userId') userId?: string,
-    @Query('year') year?: string,
-  ) {
-    return this.researchService.findAllGrants({
-      userId,
-      year: year ? +year : undefined,
-    });
+  @Put(':id')
+  update(@Param('id') id: string, @Body() dto: CreateResearchSummaryDto) {
+    return this.researchService.update(id, dto);
   }
 
-  @Post('grants')
-  createGrant(@Body() dto: CreateGrantDto, @Request() req: { user: { sub: string } }) {
-    return this.researchService.createGrant(dto, req.user.sub);
-  }
-
-  // ==================== HKI ====================
-
-  @Get('hki')
-  @ApiQuery({ name: 'userId', required: false })
-  @ApiQuery({ name: 'year', required: false, type: Number })
-  findAllHki(
-    @Query('userId') userId?: string,
-    @Query('year') year?: string,
-  ) {
-    return this.researchService.findAllHki({
-      userId,
-      year: year ? +year : undefined,
-    });
-  }
-
-  @Post('hki')
-  createHki(@Body() dto: CreateHkiDto, @Request() req: { user: { sub: string } }) {
-    return this.researchService.createHki(dto, req.user.sub);
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.researchService.remove(id);
   }
 }

@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Put, Delete,
-  Body, Param, Query, UseGuards, Request,
+  Body, Param, Query, UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
@@ -16,24 +16,20 @@ export class IkuController {
   constructor(private ikuService: IkuService) {}
 
   @Get()
-  @ApiQuery({ name: 'year', required: false, type: Number })
-  @ApiQuery({ name: 'criteria', required: false, type: Number })
-  @ApiQuery({ name: 'semester', required: false, type: Number })
+  @ApiQuery({ name: 'academicYearId', required: false })
+  @ApiQuery({ name: 'ikuCode', required: false })
+  @ApiQuery({ name: 'institutionId', required: false })
   findAll(
-    @Query('year') year?: string,
-    @Query('criteria') criteria?: string,
-    @Query('semester') semester?: string,
+    @Query('academicYearId') academicYearId?: string,
+    @Query('ikuCode') ikuCode?: string,
+    @Query('institutionId') institutionId?: string,
   ) {
-    return this.ikuService.findAll({
-      year: year ? +year : undefined,
-      criteria: criteria ? +criteria : undefined,
-      semester: semester ? +semester : undefined,
-    });
+    return this.ikuService.findAll({ academicYearId, ikuCode, institutionId });
   }
 
   @Post()
-  create(@Body() dto: CreateIkuDto, @Request() req: { user: { sub: string } }) {
-    return this.ikuService.create(dto, req.user.sub);
+  create(@Body() dto: CreateIkuDto) {
+    return this.ikuService.create(dto);
   }
 
   @Put(':id')

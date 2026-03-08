@@ -1,46 +1,29 @@
-import { IsString, IsInt, IsOptional, IsEnum, IsDateString } from 'class-validator';
+import { IsString, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import type { Prisma } from '../../../generated/prisma/client.js';
 
-export class CreateSpmiDto {
-  @ApiProperty({ example: 'Evaluasi Kurikulum 2024' })
+export class CreateChangeLogDto {
+  @ApiProperty({ example: 'VMTS' })
   @IsString()
-  name: string;
+  entityName: string;
 
-  @ApiProperty({ example: 2024 })
-  @IsInt()
-  year: number;
-
-  @ApiProperty({ example: 'PENETAPAN', enum: ['PENETAPAN', 'PELAKSANAAN', 'EVALUASI', 'PENGENDALIAN', 'PENINGKATAN'] })
-  @IsEnum({ PENETAPAN: 'PENETAPAN', PELAKSANAAN: 'PELAKSANAAN', EVALUASI: 'EVALUASI', PENGENDALIAN: 'PENGENDALIAN', PENINGKATAN: 'PENINGKATAN' })
-  phase: 'PENETAPAN' | 'PELAKSANAAN' | 'EVALUASI' | 'PENGENDALIAN' | 'PENINGKATAN';
-
-  @ApiPropertyOptional({ example: 'Evaluasi mutu kurikulum prodi Sastra Inggris' })
+  @ApiProperty({ example: 'uuid-of-record' })
   @IsString()
-  @IsOptional()
-  description?: string;
+  recordId: string;
 
-  @ApiPropertyOptional({ example: 'IN_PROGRESS' })
+  @ApiProperty({ example: 'UPDATE', enum: ['CREATE', 'UPDATE', 'DELETE'] })
   @IsString()
-  @IsOptional()
-  status?: string;
+  changeType: string;
 
-  @ApiPropertyOptional({ example: '2024-01-15' })
-  @IsDateString()
-  @IsOptional()
-  startDate?: string;
-
-  @ApiPropertyOptional({ example: '2024-06-30' })
-  @IsDateString()
-  @IsOptional()
-  endDate?: string;
-
-  @ApiPropertyOptional({ example: 'Ditemukan gap pada capaian IKU 3' })
+  @ApiProperty({ example: 'admin-user-id' })
   @IsString()
-  @IsOptional()
-  findings?: string;
+  changedBy: string;
 
-  @ApiPropertyOptional({ example: 'Revisi RPS dan peningkatan monitoring' })
-  @IsString()
+  @ApiPropertyOptional()
   @IsOptional()
-  followUp?: string;
+  beforeData?: Prisma.InputJsonValue;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  afterData?: Prisma.InputJsonValue;
 }

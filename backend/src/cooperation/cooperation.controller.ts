@@ -5,9 +5,9 @@ import {
 import { ApiTags, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { CooperationService } from './cooperation.service.js';
-import { CreateCooperationDto } from './dto/create-cooperation.dto.js';
+import { CreateServiceSummaryDto, UpdateServiceSummaryDto } from './dto/create-cooperation.dto.js';
 
-@ApiTags('Kerjasama / MoU')
+@ApiTags('Service / Pengabdian')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('cooperation')
@@ -15,13 +15,13 @@ export class CooperationController {
   constructor(private cooperationService: CooperationService) {}
 
   @Get()
-  @ApiQuery({ name: 'scope', required: false })
-  @ApiQuery({ name: 'status', required: false })
+  @ApiQuery({ name: 'institutionId', required: false })
+  @ApiQuery({ name: 'academicYearId', required: false })
   findAll(
-    @Query('scope') scope?: string,
-    @Query('status') status?: string,
+    @Query('institutionId') institutionId?: string,
+    @Query('academicYearId') academicYearId?: string,
   ) {
-    return this.cooperationService.findAll({ scope, status });
+    return this.cooperationService.findAll({ institutionId, academicYearId });
   }
 
   @Get(':id')
@@ -30,12 +30,12 @@ export class CooperationController {
   }
 
   @Post()
-  create(@Body() dto: CreateCooperationDto) {
+  create(@Body() dto: CreateServiceSummaryDto) {
     return this.cooperationService.create(dto);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() dto: CreateCooperationDto) {
+  update(@Param('id') id: string, @Body() dto: UpdateServiceSummaryDto) {
     return this.cooperationService.update(id, dto);
   }
 

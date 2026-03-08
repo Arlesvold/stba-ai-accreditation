@@ -1,95 +1,72 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { CreateAlumniDto, CreateAchievementDto } from './dto/student.dto.js';
+import { CreateStudentsSummaryDto, CreateGraduatesDto } from './dto/student.dto.js';
 
 @Injectable()
 export class StudentService {
   constructor(private prisma: PrismaService) {}
 
-  // ===== Alumni / Tracer Study =====
+  // ===== Students Summary =====
 
-  async findAllAlumni(query: { graduationYear?: number; programStudy?: string }) {
+  async findAllStudentsSummary(query: { academicYearId?: string; institutionId?: string }) {
     const where: Record<string, unknown> = {};
-    if (query.graduationYear) where.graduationYear = query.graduationYear;
-    if (query.programStudy) where.programStudy = query.programStudy;
+    if (query.academicYearId) where.academicYearId = query.academicYearId;
+    if (query.institutionId) where.institutionId = query.institutionId;
 
-    const data = await this.prisma.alumni.findMany({
+    const data = await this.prisma.studentsSummary.findMany({
       where,
-      orderBy: { graduationYear: 'desc' },
+      orderBy: { academicYearId: 'asc' },
     });
 
     return { success: true, data, meta: { total: data.length } };
   }
 
-  async createAlumni(dto: CreateAlumniDto) {
-    const data = await this.prisma.alumni.create({ data: dto });
-    return { success: true, data, message: 'Data alumni berhasil ditambahkan' };
+  async createStudentsSummary(dto: CreateStudentsSummaryDto) {
+    const data = await this.prisma.studentsSummary.create({ data: dto });
+    return { success: true, data, message: 'Data mahasiswa berhasil ditambahkan' };
   }
 
-  async updateAlumni(id: string, dto: Partial<CreateAlumniDto>) {
-    const existing = await this.prisma.alumni.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException('Data alumni tidak ditemukan');
+  async updateStudentsSummary(id: string, dto: Partial<CreateStudentsSummaryDto>) {
+    const existing = await this.prisma.studentsSummary.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Data mahasiswa tidak ditemukan');
 
-    const data = await this.prisma.alumni.update({ where: { id }, data: dto });
-    return { success: true, data, message: 'Data alumni berhasil diupdate' };
+    const data = await this.prisma.studentsSummary.update({ where: { id }, data: dto });
+    return { success: true, data, message: 'Data mahasiswa berhasil diupdate' };
   }
 
-  async removeAlumni(id: string) {
-    const existing = await this.prisma.alumni.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException('Data alumni tidak ditemukan');
+  async removeStudentsSummary(id: string) {
+    const existing = await this.prisma.studentsSummary.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Data mahasiswa tidak ditemukan');
 
-    await this.prisma.alumni.delete({ where: { id } });
-    return { success: true, data: null, message: 'Data alumni berhasil dihapus' };
+    await this.prisma.studentsSummary.delete({ where: { id } });
+    return { success: true, data: null, message: 'Data mahasiswa berhasil dihapus' };
   }
 
-  async getTracerStudySummary(graduationYear?: number) {
+  // ===== Graduates Outcomes =====
+
+  async findAllGraduates(query: { academicYearId?: string; institutionId?: string }) {
     const where: Record<string, unknown> = {};
-    if (graduationYear) where.graduationYear = graduationYear;
+    if (query.academicYearId) where.academicYearId = query.academicYearId;
+    if (query.institutionId) where.institutionId = query.institutionId;
 
-    const alumni = await this.prisma.alumni.findMany({ where });
-    const total = alumni.length;
-    const employed = alumni.filter((a) => a.employmentStatus === 'Employed').length;
-    const avgWaiting = total > 0
-      ? alumni.reduce((sum, a) => sum + (a.waitingMonths ?? 0), 0) / total
-      : 0;
-
-    return {
-      success: true,
-      data: {
-        totalAlumni: total,
-        employed,
-        unemployed: total - employed,
-        employmentRate: total > 0 ? Math.round((employed / total) * 100) : 0,
-        avgWaitingMonths: Math.round(avgWaiting * 10) / 10,
-      },
-    };
-  }
-
-  // ===== Student Achievements =====
-
-  async findAllAchievements(query: { year?: number; category?: string }) {
-    const where: Record<string, unknown> = {};
-    if (query.year) where.year = query.year;
-    if (query.category) where.category = query.category;
-
-    const data = await this.prisma.studentAchievement.findMany({
+    const data = await this.prisma.graduatesOutcomes.findMany({
       where,
-      orderBy: [{ year: 'desc' }, { createdAt: 'desc' }],
+      orderBy: { academicYearId: 'asc' },
     });
 
     return { success: true, data, meta: { total: data.length } };
   }
 
-  async createAchievement(dto: CreateAchievementDto) {
-    const data = await this.prisma.studentAchievement.create({ data: dto });
-    return { success: true, data, message: 'Prestasi mahasiswa berhasil ditambahkan' };
+  async createGraduates(dto: CreateGraduatesDto) {
+    const data = await this.prisma.graduatesOutcomes.create({ data: dto });
+    return { success: true, data, message: 'Data lulusan berhasil ditambahkan' };
   }
 
-  async removeAchievement(id: string) {
-    const existing = await this.prisma.studentAchievement.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException('Data prestasi tidak ditemukan');
+  async updateGraduates(id: string, dto: Partial<CreateGraduatesDto>) {
+    const existing = await this.prisma.graduatesOutcomes.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Data lulusan tidak ditemukan');
 
-    await this.prisma.studentAchievement.delete({ where: { id } });
-    return { success: true, data: null, message: 'Data prestasi berhasil dihapus' };
+    const data = await this.prisma.graduatesOutcomes.update({ where: { id }, data: dto });
+    return { success: true, data, message: 'Data lulusan berhasil diupdate' };
   }
 }

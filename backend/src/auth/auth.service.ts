@@ -21,10 +21,16 @@ export class AuthService {
     }
 
     const user = await this.usersService.create(dto);
-    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    const role = user.userRoles?.[0]?.role?.roleCode ?? 'STAFF';
+    const tokens = await this.generateTokens(user.id, user.email, role);
 
     return {
-      user,
+      user: {
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        role,
+      },
       ...tokens,
     };
   }
@@ -35,21 +41,20 @@ export class AuthService {
       throw new UnauthorizedException('Email atau password salah');
     }
 
-    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+    const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Email atau password salah');
     }
 
-    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    const role = user.userRoles?.[0]?.role?.roleCode ?? 'STAFF';
+    const tokens = await this.generateTokens(user.id, user.email, role);
 
     return {
       user: {
         id: user.id,
-        name: user.name,
+        fullName: user.fullName,
         email: user.email,
-        role: user.role,
-        nidn: user.nidn,
-        department: user.department,
+        role,
       },
       ...tokens,
     };
@@ -61,7 +66,8 @@ export class AuthService {
       throw new UnauthorizedException('User tidak ditemukan');
     }
 
-    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    const role = user.userRoles?.[0]?.role?.roleCode ?? 'STAFF';
+    const tokens = await this.generateTokens(user.id, user.email, role);
     return tokens;
   }
 

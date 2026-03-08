@@ -1,62 +1,47 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { CreateScoreDto, UpdateScoreDto } from './dto/accreditation.dto.js';
+import { CreateVmtsDto, UpdateVmtsDto } from './dto/accreditation.dto.js';
 
 @Injectable()
 export class AccreditationService {
   constructor(private prisma: PrismaService) {}
 
-  async getReadiness(year?: number) {
-    const targetYear = year ?? new Date().getFullYear();
+  async getVmts(query: { institutionId?: string; studyProgramId?: string }) {
+    const where: Record<string, unknown> = {};
+    if (query.institutionId) where.institutionId = query.institutionId;
+    if (query.studyProgramId) where.studyProgramId = query.studyProgramId;
 
-    const criteria = await this.prisma.accreditationScore.findMany({
-      where: { year: targetYear },
-      orderBy: { criteriaNo: 'asc' },
-    });
+    const data = await this.prisma.vMTS.findMany({ where });
+    return { success: true, data, meta: { total: data.length } };
+  }
 
-    const totalScore = criteria.reduce((sum, c) => sum + c.score, 0);
-    const totalMax = criteria.reduce((sum, c) => sum + c.maxScore, 0);
-    const overallScore = totalMax > 0 ? Math.round((totalScore / totalMax) * 1000) / 10 : 0;
+  async createVmts(dto: CreateVmtsDto) {
+    const data = await this.prisma.vMTS.create({ data: dto });
+    return { success: true, data, message: 'VMTS berhasil ditambahkan' };
+  }
+
+  async updateVmts(id: string, dto: UpdateVmtsDto) {
+    const existing = await this.prisma.vMTS.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('VMTS tidak ditemukan');
+
+    const data = await this.prisma.vMTS.update({ where: { id }, data: dto });
+    return { success: true, data, message: 'VMTS berhasil diupdate' };
+  }
+
+  async getReadiness(institutionId: string) {
+    const [vmts, docDefs, evidenceDocs] = await Promise.all([
+      this.prisma.vMTS.count({ where: { institutionId } }),
+      this.prisma.documentDefinition.count(),
+      this.prisma.evidenceDocument.count({ where: { institutionId } }),
+    ]);
 
     return {
       success: true,
       data: {
-        overallScore,
-        criteria: criteria.map((c) => ({
-          id: c.id,
-          number: c.criteriaNo,
-          name: c.criteriaName,
-          score: c.score,
-          maxScore: c.maxScore,
-          status: c.score / c.maxScore >= 0.7 ? 'good' : 'at_risk',
-          gap: c.maxScore - c.score,
-        })),
+        vmtsReady: vmts > 0,
+        documentDefinitions: docDefs,
+        evidenceUploaded: evidenceDocs,
       },
     };
-  }
-
-  async createScore(dto: CreateScoreDto) {
-    const data = await this.prisma.accreditationScore.create({
-      data: {
-        criteriaNo: dto.criteriaNo,
-        criteriaName: dto.criteriaName,
-        score: dto.score,
-        maxScore: dto.maxScore ?? 100,
-        year: dto.year,
-        notes: dto.notes,
-      },
-    });
-    return { success: true, data, message: 'Skor kriteria berhasil ditambahkan' };
-  }
-
-  async updateScore(id: string, dto: UpdateScoreDto) {
-    const existing = await this.prisma.accreditationScore.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException('Skor kriteria tidak ditemukan');
-
-    const data = await this.prisma.accreditationScore.update({
-      where: { id },
-      data: dto,
-    });
-    return { success: true, data, message: 'Skor kriteria berhasil diupdate' };
   }
 }
