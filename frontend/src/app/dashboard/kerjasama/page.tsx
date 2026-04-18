@@ -45,6 +45,11 @@ const emptyForm: CreateCooperationRequest = {
   contactPerson: "",
 };
 
+const dateFormatter = new Intl.DateTimeFormat("id-ID", {
+  dateStyle: "medium",
+  timeZone: "Asia/Jakarta",
+});
+
 export default function KerjasamaPage() {
   const { cooperations, loading, error, fetchAll, create, update, remove } =
     useCooperationStore();
@@ -361,11 +366,11 @@ export default function KerjasamaPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {new Date(item.startDate).toLocaleDateString("id-ID")}
+                      {dateFormatter.format(new Date(item.startDate))}
                     </TableCell>
                     <TableCell>
                       {item.endDate
-                        ? new Date(item.endDate).toLocaleDateString("id-ID")
+                        ? dateFormatter.format(new Date(item.endDate))
                         : "—"}
                     </TableCell>
                     <TableCell className="text-right">

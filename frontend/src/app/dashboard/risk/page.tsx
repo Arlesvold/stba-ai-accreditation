@@ -46,6 +46,11 @@ function levelVariant(level: string) {
   }
 }
 
+const dateFormatter = new Intl.DateTimeFormat("id-ID", {
+  dateStyle: "medium",
+  timeZone: "Asia/Jakarta",
+});
+
 export default function RiskAlertsPage() {
   const { alerts, loading, error, fetchAlerts, createAlert, resolveAlert } =
     useRiskStore();
@@ -260,7 +265,7 @@ export default function RiskAlertsPage() {
                       <Badge variant="secondary">{alert.level}</Badge>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {new Date(alert.updatedAt).toLocaleDateString("id-ID")}
+                      {dateFormatter.format(new Date(alert.updatedAt))}
                     </TableCell>
                   </TableRow>
                 ))}

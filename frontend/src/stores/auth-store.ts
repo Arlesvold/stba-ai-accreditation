@@ -5,9 +5,11 @@ import type { User, LoginRequest, AuthTokens } from "@/lib/types";
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
+  initialized: boolean;
   loading: boolean;
   error: string | null;
 
+  initializeAuth: () => void;
   login: (data: LoginRequest) => Promise<void>;
   logout: () => void;
   fetchProfile: () => Promise<void>;
@@ -16,10 +18,20 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  isAuthenticated:
-    typeof window !== "undefined" ? !!localStorage.getItem("accessToken") : false,
+  isAuthenticated: false,
+  initialized: false,
   loading: false,
   error: null,
+
+  initializeAuth: () => {
+    if (typeof window === "undefined") {
+      set({ initialized: true });
+      return;
+    }
+
+    const hasToken = Boolean(localStorage.getItem("accessToken"));
+    set({ isAuthenticated: hasToken, initialized: true });
+  },
 
   login: async (data) => {
     set({ loading: true, error: null });
@@ -28,7 +40,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { accessToken, refreshToken } = res.data.data;
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
-      set({ isAuthenticated: true, loading: false });
+      set({ isAuthenticated: true, initialized: true, loading: false });
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data
@@ -41,15 +53,15 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
-    set({ user: null, isAuthenticated: false });
+    set({ user: null, isAuthenticated: false, initialized: true });
   },
 
   fetchProfile: async () => {
     try {
       const res = await api.get<{ data: User }>("/auth/profile");
-      set({ user: res.data.data, isAuthenticated: true });
+      set({ user: res.data.data, isAuthenticated: true, initialized: true });
     } catch {
-      set({ user: null, isAuthenticated: false });
+      set({ user: null, isAuthenticated: false, initialized: true });
     }
   },
 

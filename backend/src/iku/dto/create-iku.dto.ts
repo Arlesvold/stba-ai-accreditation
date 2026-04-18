@@ -1,18 +1,18 @@
-import { IsString, IsNumber, IsOptional, IsUUID } from 'class-validator';
+import { IsString, IsNumber, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateIkuDto {
   @ApiProperty()
-  @IsUUID()
+  @IsString()
   institutionId: string;
 
   @ApiPropertyOptional()
-  @IsUUID()
+  @IsString()
   @IsOptional()
   studyProgramId?: string;
 
   @ApiProperty()
-  @IsUUID()
+  @IsString()
   academicYearId: string;
 
   @ApiProperty({ example: 'IKU-1' })
@@ -29,7 +29,7 @@ export class CreateIkuDto {
   unit?: string;
 
   @ApiPropertyOptional()
-  @IsUUID()
+  @IsString()
   @IsOptional()
   sourceUnitId?: string;
 

@@ -27,6 +27,12 @@ const CRITERIA_OPTIONS = [
   { no: 9, label: "C9 – Luaran dan Capaian Tridharma" },
 ];
 
+const dateTimeFormatter = new Intl.DateTimeFormat("id-ID", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "Asia/Jakarta",
+});
+
 function statusBadge(status: string) {
   switch (status) {
     case "COMPLETED":
@@ -202,7 +208,7 @@ export default function LedPage() {
 
                 <div className="text-sm text-muted-foreground">
                   Created:{" "}
-                  {new Date(currentJob.createdAt).toLocaleString("id-ID")}
+                  {dateTimeFormatter.format(new Date(currentJob.createdAt))}
                 </div>
 
                 <div className="flex gap-2">

@@ -9,7 +9,31 @@ const config: Config = {
   ],
   theme: {
   	extend: {
+		fontFamily: {
+			sans: ["Inter", "system-ui", "sans-serif"],
+		},
+		fontSize: {
+			hero: ["1.25rem", { lineHeight: "1.2", fontWeight: "600" }],
+			section: ["1.25rem", { lineHeight: "1.3", fontWeight: "600" }],
+			cardtitle: ["0.9375rem", { lineHeight: "1.4", fontWeight: "600" }],
+			body13: ["0.8125rem", { lineHeight: "1.5", fontWeight: "400" }],
+			label11: ["0.6875rem", { lineHeight: "1.4", fontWeight: "500" }],
+		},
   		colors: {
+			primary: '#2563EB',
+			sidebar: '#0F172A',
+			surface: '#FFFFFF',
+			page: '#F8FAFC',
+			brand: {
+				primary: "var(--color-primary)",
+				accent: "var(--color-primary)",
+				surface: "var(--color-surface)",
+				page: "var(--color-page-bg)",
+				textPrimary: "var(--color-text-primary)",
+				textMuted: "var(--color-text-muted)",
+				hint: "var(--color-text-hint)",
+				success: "var(--color-success)",
+			},
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
@@ -52,6 +76,8 @@ const config: Config = {
   			}
   		},
   		borderRadius: {
+			card: '10px',
+			btn: '8px',
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
