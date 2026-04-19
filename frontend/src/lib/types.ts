@@ -171,6 +171,9 @@ export interface AccreditationReadiness {
   percentage: number;
   grade: string;
   scores: AccreditationScore[];
+  vmtsReady?: boolean;
+  documentDefinitions?: number;
+  evidenceUploaded?: number;
 }
 
 // ===== Risk =====

@@ -1,35 +1,20 @@
 "use client";
-
-import { useState } from "react";
-import { Sidebar } from "@/components/layout/sidebar";
-import { Navbar } from "@/components/layout/navbar";
+import { Sidebar } from "@/components/ui/Sidebar";
+import { TopBar } from "@/components/ui/TopBar";
 import { AuthGuard } from "@/components/layout/auth-guard";
-import { cn } from "@/lib/utils";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [collapsed, setCollapsed] = useState(false);
-
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-background">
-        <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
-        <Navbar
-          sidebarCollapsed={collapsed}
-          onMenuClick={() => setCollapsed(!collapsed)}
-        />
-        <main
-          className={cn(
-            "pt-16 transition-all duration-300",
-            collapsed
-              ? "ml-[var(--sidebar-collapsed-width)]"
-              : "ml-[var(--sidebar-width)]"
-          )}
-        >
-          <div className="p-6">{children}</div>
+      <div className="min-h-screen bg-[#F8FAFC]">
+        <Sidebar />
+        <TopBar />
+        <main className="ml-[220px] pt-14">
+          <div className="mx-auto w-full max-w-[1320px] px-6 py-8">{children}</div>
         </main>
       </div>
     </AuthGuard>

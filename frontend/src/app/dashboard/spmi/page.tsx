@@ -71,7 +71,7 @@ export default function SpmiPage() {
         year: item.year,
         phase: item.phase,
         description: item.description ?? "",
-        status: item.status,
+        status: item.status ?? "PLANNED",
         startDate: item.startDate?.slice(0, 10) ?? "",
         endDate: item.endDate?.slice(0, 10) ?? "",
         findings: item.findings ?? "",
@@ -88,6 +88,7 @@ export default function SpmiPage() {
     e.preventDefault();
     const payload = {
       ...form,
+      status: form.status ?? "PLANNED",
       startDate: form.startDate || undefined,
       endDate: form.endDate || undefined,
       description: form.description || undefined,
@@ -344,8 +345,8 @@ export default function SpmiPage() {
                     </TableCell>
                     <TableCell>{item.year}</TableCell>
                     <TableCell>
-                      <Badge variant={statusColor(item.status)}>
-                        {item.status.replace("_", " ")}
+                      <Badge variant={statusColor(item.status ?? "PLANNED")}>
+                        {(item.status ?? "PLANNED").replace(/_/g, " ")}
                       </Badge>
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate">

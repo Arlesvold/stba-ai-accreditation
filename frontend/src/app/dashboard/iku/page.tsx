@@ -267,8 +267,8 @@ export default function IkuPage() {
                       {item.percentage}%
                     </TableCell>
                     <TableCell>
-                      <Badge variant={statusColor(item.status)}>
-                        {item.status.replace("_", " ")}
+                      <Badge variant={statusColor(item.status ?? "ON_TRACK")}>
+                        {(item.status ?? "ON_TRACK").replace(/_/g, " ")}
                       </Badge>
                     </TableCell>
                     <TableCell>{item.year}</TableCell>

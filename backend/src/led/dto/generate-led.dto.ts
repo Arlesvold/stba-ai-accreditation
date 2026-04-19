@@ -1,22 +1,22 @@
-import { IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class GenerateDocumentDto {
   @ApiProperty({ description: 'ID of the document definition (e.g., LED, LKPS)' })
-  @IsUUID()
+  @IsString()
   documentDefinitionId: string;
 
   @ApiProperty()
-  @IsUUID()
+  @IsString()
   institutionId: string;
 
   @ApiPropertyOptional()
-  @IsUUID()
+  @IsString()
   @IsOptional()
   studyProgramId?: string;
 
   @ApiPropertyOptional()
-  @IsUUID()
+  @IsString()
   @IsOptional()
   academicYearId?: string;
 

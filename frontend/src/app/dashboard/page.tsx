@@ -1,29 +1,35 @@
 "use client";
 
 import { useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Target, BookOpen, Award, AlertTriangle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { StatCard } from "@/components/ui/StatCard";
+import { DocCard } from "@/components/ui/DocCard";
+import { ReadinessRing } from "@/components/ui/ReadinessRing";
+import {
+  FileText,
+  BookOpen,
+  FolderKanban,
+  Sparkles,
+} from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { useIkuStore } from "@/stores/iku-store";
 import { useResearchStore } from "@/stores/research-store";
 import { useAccreditationStore } from "@/stores/accreditation-store";
-import { useRiskStore } from "@/stores/risk-store";
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { user } = useAuthStore();
   const { items: ikuItems, fetchAll: fetchIku } = useIkuStore();
   const { publications, grants, fetchPublications, fetchGrants } = useResearchStore();
   const { readiness, fetchReadiness } = useAccreditationStore();
-  const { alerts, fetchAlerts } = useRiskStore();
 
   useEffect(() => {
     fetchIku();
     fetchPublications();
     fetchGrants();
     fetchReadiness();
-    fetchAlerts();
-  }, [fetchIku, fetchPublications, fetchGrants, fetchReadiness, fetchAlerts]);
+  }, [fetchIku, fetchPublications, fetchGrants, fetchReadiness]);
 
   const avgIku =
     ikuItems.length > 0
@@ -33,134 +39,91 @@ export default function DashboardPage() {
       : 0;
 
   const totalResearch = publications.length + grants.length;
-  const activeAlerts = alerts.filter((a) => !a.isResolved).length;
-
-  const stats = [
-    {
-      title: "IKU Achievement",
-      value: ikuItems.length > 0 ? `${avgIku}%` : "—",
-      description: `${ikuItems.length} indicators tracked`,
-      icon: Target,
-      color: "text-blue-600",
-    },
-    {
-      title: "Total Research",
-      value: totalResearch > 0 ? String(totalResearch) : "—",
-      description: `${publications.length} publications, ${grants.length} grants`,
-      icon: BookOpen,
-      color: "text-green-600",
-    },
-    {
-      title: "Accreditation Score",
-      value: readiness ? `${readiness.percentage}%` : "—",
-      description: readiness ? `Grade: ${readiness.grade}` : "Not assessed",
-      icon: Award,
-      color: "text-amber-600",
-    },
-    {
-      title: "Risk Alerts",
-      value: activeAlerts > 0 ? String(activeAlerts) : "0",
-      description: `${alerts.length} total, ${activeAlerts} active`,
-      icon: AlertTriangle,
-      color: "text-red-600",
-    },
-  ];
+  const profile = user as { name?: string; fullName?: string } | null;
+  const displayName = profile?.fullName ?? profile?.name ?? "Super Admin STBA";
+  const readinessScore = readiness?.percentage ?? avgIku;
+  const pct = Number(readinessScore) || 0;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">
-          Welcome back{user?.name ? `, ${user.name}` : ""}
-        </h2>
-        <p className="text-muted-foreground">
-          Overview of your accreditation performance indicators.
-        </p>
-      </div>
+    <div className="space-y-8 pb-8">
+      <section className="rounded-xl border border-[#E2E8F0] bg-white p-6">
+        <div className="flex gap-6">
+          <div className="flex-1">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#EFF6FF] px-2.5 py-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#2563EB]" />
+              <span className="text-[11px] font-medium text-[#1D4ED8]">AI-Powered Document Intelligence</span>
+            </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-              <stat.icon className={`h-4 w-4 ${stat.color}`} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">
-                {stat.description}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            <h2 className="mt-4 text-[20px] font-semibold tracking-[-0.02em] text-[#0F172A]">
+              AI Document Generator
+            </h2>
+            <p className="mt-3 max-w-[380px] text-[13px] leading-[1.6] text-[#64748B]">
+              Menyusun LED, RPS, Kurikulum OBE, dan dokumen akreditasi secara otomatis dengan teknologi AI.
+            </p>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">IKU Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {ikuItems.length > 0 ? (
-              <div className="space-y-2">
-                {ikuItems.slice(0, 5).map((iku) => (
-                  <div
-                    key={iku.id}
-                    className="flex items-center justify-between text-sm"
-                  >
-                    <span className="truncate mr-2">{iku.indicator}</span>
-                    <Badge
-                      variant={iku.percentage >= 80 ? "default" : "secondary"}
-                    >
-                      {iku.percentage}%
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No IKU data yet.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Active Risk Alerts</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {activeAlerts > 0 ? (
-              <div className="space-y-2">
-                {alerts
-                  .filter((a) => !a.isResolved)
-                  .slice(0, 5)
-                  .map((alert) => (
-                    <div
-                      key={alert.id}
-                      className="flex items-center justify-between text-sm"
-                    >
-                      <span className="truncate mr-2">{alert.message}</span>
-                      <Badge
-                        variant={
-                          alert.level === "CRITICAL" || alert.level === "HIGH"
-                            ? "destructive"
-                            : "secondary"
-                        }
-                      >
-                        {alert.level}
-                      </Badge>
-                    </div>
-                  ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No active alerts. All clear!
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Button
+                onClick={() => router.push("/dashboard/led")}
+                className="h-auto rounded-btn bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#1D4ED8]"
+              >
+                Mulai Generate
+              </Button>
+              <Button
+                variant="outline"
+                className="h-auto rounded-btn border border-[#D1D5DB] bg-white px-4 py-2 text-[13px] font-medium text-[#374151] hover:bg-[#F8FAFC]"
+              >
+                Lihat Alur Dokumen
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex w-[160px] items-center justify-center">
+            <ReadinessRing percent={pct} status="Baik Sekali" />
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-3">
+        <StatCard label="Documents Generated" value="247" barPercent={82} />
+        <StatCard label="IAPT Criteria Covered" value="8 / 9" barPercent={89} />
+        <StatCard label="Compliance Rate" value="98%" barPercent={98} barColor="#16A34A" />
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-[13px] font-semibold text-[#0F172A]">Primary Document Generators</h3>
+          <button
+            type="button"
+            className="text-[12px] font-medium text-[#2563EB] hover:text-[#1D4ED8]"
+          >
+            Lihat semua
+          </button>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <DocCard
+            icon={<FileText className="h-[18px] w-[18px]" />}
+            title="LED Auto-Generator"
+            description="Generate LED dokumen secara otomatis berdasarkan data institusi dan kebutuhan akreditasi."
+            buttonLabel="Buka Generator"
+            onButtonClick={() => router.push("/dashboard/led")}
+          />
+          <DocCard
+            icon={<BookOpen className="h-[18px] w-[18px]" />}
+            title="Kurikulum OBE"
+            description="Rancang kurikulum Outcome-Based Education dengan pemetaan CPL, CPMK, dan mata kuliah."
+            buttonLabel="Buka Kurikulum"
+            onButtonClick={() => router.push("/dashboard/iku")}
+          />
+          <DocCard
+            icon={<FolderKanban className="h-[18px] w-[18px]" />}
+            title="Evidence Binding"
+            description="Kelola dan tautkan dokumen eviden ke komponen akreditasi secara terstruktur dan konsisten."
+            buttonLabel="Kelola Eviden"
+            onButtonClick={() => router.push("/dashboard/accreditation")}
+          />
+        </div>
+      </section>
     </div>
   );
 }

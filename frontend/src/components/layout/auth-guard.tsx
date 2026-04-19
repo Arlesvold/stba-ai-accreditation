@@ -6,9 +6,19 @@ import { useAuthStore } from "@/stores/auth-store";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { isAuthenticated, fetchProfile, user } = useAuthStore();
+  const { isAuthenticated, initialized, initializeAuth, fetchProfile, user } = useAuthStore();
 
   useEffect(() => {
+    if (!initialized) {
+      initializeAuth();
+    }
+  }, [initialized, initializeAuth]);
+
+  useEffect(() => {
+    if (!initialized) {
+      return;
+    }
+
     if (!isAuthenticated) {
       router.replace("/login");
       return;
@@ -16,9 +26,9 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     if (!user) {
       fetchProfile();
     }
-  }, [isAuthenticated, user, fetchProfile, router]);
+  }, [initialized, isAuthenticated, user, fetchProfile, router]);
 
-  if (!isAuthenticated) return null;
+  if (!initialized || !isAuthenticated) return null;
 
   return <>{children}</>;
 }

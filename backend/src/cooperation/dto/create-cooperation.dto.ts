@@ -1,18 +1,18 @@
-import { IsString, IsOptional, IsInt, IsUUID } from 'class-validator';
+import { IsString, IsOptional, IsInt } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 
 export class CreateServiceSummaryDto {
   @ApiProperty({ example: 'uuid-institution' })
-  @IsUUID()
+  @IsString()
   institutionId: string;
 
   @ApiPropertyOptional({ example: 'uuid-study-program' })
-  @IsUUID()
+  @IsString()
   @IsOptional()
   studyProgramId?: string;
 
   @ApiProperty({ example: 'uuid-academic-year' })
-  @IsUUID()
+  @IsString()
   academicYearId: string;
 
   @ApiPropertyOptional({ example: 5 })
