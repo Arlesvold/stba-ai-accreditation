@@ -37,7 +37,7 @@ const navItems = [
   { href: "/dashboard/spmi", label: "SPMI", icon: Shield },
   { href: "/dashboard/kerjasama", label: "Kerjasama", icon: Handshake },
   { href: "/dashboard/risk", label: "Risk Alerts", icon: AlertTriangle },
-  { href: "/dashboard/led", label: "LED", icon: FileText },
+  { href: "/led", label: "LED", icon: FileText },
   { href: "/dashboard/users", label: "Users", icon: Users },
 ];
 
