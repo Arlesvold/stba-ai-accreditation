@@ -15,6 +15,7 @@ import { BkdModule } from './bkd/bkd.module.js';
 import { StudentModule } from './student/student.module.js';
 import { SpmiModule } from './spmi/spmi.module.js';
 import { CooperationModule } from './cooperation/cooperation.module.js';
+import { ObeModule } from './obe/obe.module.js';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { CooperationModule } from './cooperation/cooperation.module.js';
     StudentModule,
     SpmiModule,
     CooperationModule,
+    ObeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

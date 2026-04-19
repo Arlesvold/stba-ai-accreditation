@@ -36,6 +36,11 @@ const pageMeta = [
     subtitle: "Laporan Evaluasi Diri",
   },
   {
+    href: "/dashboard/obe",
+    title: "Kurikulum OBE",
+    subtitle: "AI Draft Generator",
+  },
+  {
     href: "/dashboard/research",
     title: "Penelitian",
     subtitle: "Publikasi, Hibah, & HKI",
