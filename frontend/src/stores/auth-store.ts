@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import api from "@/lib/api";
+import axios from "axios";
+import api, { API_URL } from "@/lib/api";
 import type { User, LoginRequest, AuthTokens } from "@/lib/types";
 
 interface AuthState {
@@ -42,9 +43,17 @@ export const useAuthStore = create<AuthState>((set) => ({
       localStorage.setItem("refreshToken", refreshToken);
       set({ isAuthenticated: true, initialized: true, loading: false });
     } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Login failed";
+      let message = "Login failed";
+
+      if (axios.isAxiosError(err)) {
+        if (err.code === "ERR_NETWORK") {
+          message = `Tidak bisa terhubung ke server API (${API_URL}). Jalankan backend terlebih dahulu.`;
+        } else {
+          const responseMessage = err.response?.data as { message?: string } | undefined;
+          message = responseMessage?.message ?? message;
+        }
+      }
+
       set({ error: message, loading: false });
       throw err;
     }
