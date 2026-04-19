@@ -87,6 +87,9 @@ export const useLedStore = create<LedState>((set) => ({
         institutionId: DEFAULT_INSTITUTION_ID,
         studyProgramId: DEFAULT_STUDY_PROGRAM_ID,
         academicYearId: toAcademicYearId(data.year),
+        criteria: data.criteria,
+        format: data.format ?? "docx",
+        year: data.year,
         notes: `Generate LED | Criteria: ${data.criteria.join(",")} | Year: ${data.year} | Format: ${data.format ?? "docx"}`,
       };
       const res = await api.post<{ data: BackendLedGenerateResponse }>("/led/generate", payload);

@@ -34,3 +34,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+Data_Dummy_LED_STBA_Pontianak_v2_Realistis.xlsx

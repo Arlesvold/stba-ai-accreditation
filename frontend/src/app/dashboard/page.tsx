@@ -10,18 +10,15 @@ import {
   FileText,
   BookOpen,
   FolderKanban,
-  Sparkles,
 } from "lucide-react";
-import { useAuthStore } from "@/stores/auth-store";
 import { useIkuStore } from "@/stores/iku-store";
 import { useResearchStore } from "@/stores/research-store";
 import { useAccreditationStore } from "@/stores/accreditation-store";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user } = useAuthStore();
   const { items: ikuItems, fetchAll: fetchIku } = useIkuStore();
-  const { publications, grants, fetchPublications, fetchGrants } = useResearchStore();
+  const { fetchPublications, fetchGrants } = useResearchStore();
   const { readiness, fetchReadiness } = useAccreditationStore();
 
   useEffect(() => {
@@ -38,9 +35,6 @@ export default function DashboardPage() {
         )
       : 0;
 
-  const totalResearch = publications.length + grants.length;
-  const profile = user as { name?: string; fullName?: string } | null;
-  const displayName = profile?.fullName ?? profile?.name ?? "Super Admin STBA";
   const readinessScore = readiness?.percentage ?? avgIku;
   const pct = Number(readinessScore) || 0;
 

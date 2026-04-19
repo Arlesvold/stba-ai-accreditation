@@ -14,7 +14,6 @@ import {
   FlaskConical,
   Handshake,
   CircleHelp,
-  FileText,
   LifeBuoy,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";

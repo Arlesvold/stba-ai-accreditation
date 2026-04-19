@@ -18,6 +18,15 @@ export class LedController {
     return this.ledService.generate(dto, req.user.sub);
   }
 
+  @Post('mcp/tools/:toolCode')
+  executeMcpTool(
+    @Param('toolCode') toolCode: string,
+    @Body() dto: GenerateDocumentDto,
+    @Request() req: { user: { sub: string } },
+  ) {
+    return this.ledService.executeMcpTool(toolCode, dto, req.user.sub);
+  }
+
   @Get('status/:jobId')
   getStatus(@Param('jobId') jobId: string) {
     return this.ledService.getStatus(jobId);

@@ -1,0 +1,982 @@
+{
+  "1. Profil Institusi": [
+    [
+      "PROFIL INSTITUSI — STBA Pontianak (Data Berbasis Riset Website Resmi)"
+    ],
+    [
+      "⚠️ DATA DUMMY (Berbasis Riset) | Program Studi: S1 Sastra Inggris & D3 Bahasa Inggris | Alamat real: Jl. Gajahmada No.38, Pontianak Selatan | IPK mengacu data nasional Kemdikbudristek 2022"
+    ],
+    [
+      "📌 Dasar Riset: stbapontianak.ac.id — program studi aktif hanya S1 Sastra Inggris & D3 Bahasa Inggris"
+    ],
+    [
+      "Komponen",
+      "Data",
+      "Sumber / Catatan"
+    ],
+    [
+      "Nama Institusi",
+      "Sekolah Tinggi Bahasa Asing (STBA) Pontianak",
+      "Website stbapontianak.ac.id"
+    ],
+    [
+      "Kode PDDikti",
+      "113088 / ID: 3232",
+      "PDDikti"
+    ],
+    [
+      "Jenis PT / Status",
+      "Sekolah Tinggi / Swasta",
+      "PDDikti"
+    ],
+    [
+      "Tahun Berdiri",
+      "1985",
+      "SK Pendirian"
+    ],
+    [
+      "No SK Pendirian",
+      "SK Mendikbud No. 0372/O/1985",
+      "SK Mendikbud"
+    ],
+    [
+      "Alamat (Real)",
+      "Jl. Gajahmada No. 38, Benua Melayu Darat, Kec. Pontianak Selatan, Kota Pontianak, Kalimantan Barat",
+      "Website resmi stbapontianak.ac.id"
+    ],
+    [
+      "Telepon",
+      "0858-2238-5552",
+      "Website resmi"
+    ],
+    [
+      "Email",
+      "kampus@stbapontianak.ac.id",
+      "Website resmi"
+    ],
+    [
+      "Website",
+      "https://stbapontianak.ac.id",
+      "Website resmi"
+    ],
+    [
+      "LLDIKTI Wilayah",
+      "XI (Kalimantan)",
+      "PDDikti"
+    ],
+    [
+      "Akreditasi Institusi",
+      "Baik",
+      "SK BAN-PT No. 1087/SK/2022"
+    ],
+    [
+      "No SK Akreditasi",
+      "SK BAN-PT No. 1087/SK/BAN-PT/Ak/PT/XII/2022",
+      "BAN-PT"
+    ],
+    [
+      "Masa Berlaku",
+      "2027-12-10",
+      "BAN-PT"
+    ],
+    [
+      "Jumlah Prodi",
+      "2 prodi aktif (S1 Sastra Inggris & D3 Bahasa Inggris)",
+      "Website stbapontianak.ac.id"
+    ],
+    [
+      "Total Mahasiswa Aktif",
+      "429",
+      "Estimasi berbasis 2 prodi aktif"
+    ],
+    [
+      "Total Dosen Tetap",
+      "22",
+      "Estimasi rasio 1:19.5"
+    ],
+    [
+      "Total Tendik",
+      "14",
+      "Estimasi STBA kecil"
+    ],
+    [
+      "Program Studi",
+      "Jenjang & Akreditasi",
+      "Mhs Aktif & SK BAN-PT"
+    ],
+    [
+      "Sastra Inggris",
+      "S1 — Akreditasi: Baik",
+      "287 mhs | SK BAN-PT No. 7599/SK/BAN-PT/Ak-PPJ/S/XI/2023"
+    ],
+    [
+      "Bahasa Inggris",
+      "D3 — Akreditasi: Baik",
+      "142 mhs | SK BAN-PT No. 3241/SK/BAN-PT/Ak-PPJ/Dipl-III/VII/2022"
+    ]
+  ],
+  "2. Data Dosen (DTPS)": [
+    [
+      "DATA DOSEN TETAP (DTPS) — Kriteria 4: SDM | 22 Dosen Tetap, Rasio 1:19.5"
+    ],
+    [
+      "⚠️ DATA DUMMY (Berbasis Riset) | Program Studi: S1 Sastra Inggris & D3 Bahasa Inggris | Alamat real: Jl. Gajahmada No.38, Pontianak Selatan | IPK mengacu data nasional Kemdikbudristek 2022"
+    ],
+    [
+      "📌 Dasar Riset: 22 dosen untuk 429 mhs = rasio 1:19.5 (maks BAN-PT humaniora 1:30, status: memenuhi)"
+    ],
+    [
+      "ID",
+      "Nama Dosen",
+      "NIDN",
+      "Jabatan Fungsional",
+      "Pend. Terakhir",
+      "Bidang Keahlian",
+      "Prodi Penugasan",
+      "Sertifikasi",
+      "EWMP (SKS)",
+      "Jml Bimb. TA",
+      "Pub. 3 Thn"
+    ],
+    [
+      "DT001",
+      "Dr. Hj. Ratna Dewi Kusumawati, M.Hum.",
+      "1105067201",
+      "Lektor Kepala",
+      "S3",
+      "Linguistik Terapan",
+      "Sastra Inggris (S1)",
+      "Tersertifikasi",
+      10,
+      5,
+      4
+    ],
+    [
+      "DT002",
+      "Drs. Andri Setiawan, M.Pd.",
+      "1123077802",
+      "Lektor",
+      "S2",
+      "Pendidikan Bahasa Inggris",
+      "Sastra Inggris (S1)",
+      "Tersertifikasi",
+      12,
+      6,
+      3
+    ],
+    [
+      "DT003",
+      "Yusuf Hidayat, M.Hum.",
+      "1108079003",
+      "Lektor",
+      "S2",
+      "Sastra Inggris dan Kajian Budaya",
+      "Sastra Inggris (S1)",
+      "Tersertifikasi",
+      12,
+      7,
+      5
+    ],
+    [
+      "DT004",
+      "Siti Aminah, M.Pd.",
+      "1214067004",
+      "Lektor",
+      "S2",
+      "Pembelajaran Bahasa Inggris",
+      "Sastra Inggris (S1)",
+      "Tersertifikasi",
+      12,
+      8,
+      3
+    ],
+    [
+      "DT005",
+      "Rika Handayani, S.S., M.Hum.",
+      "1103029206",
+      "Asisten Ahli",
+      "S2",
+      "Sosiolinguistik",
+      "Sastra Inggris (S1)",
+      "Belum Tersertifikasi",
+      12,
+      4,
+      2
+    ],
+    [
+      "DT006",
+      "Daniel Kristianto, M.A.",
+      "1117088907",
+      "Asisten Ahli",
+      "S2",
+      "Linguistik & Penerjemahan",
+      "Sastra Inggris (S1) & D3 Bahasa Inggris",
+      "Tersertifikasi",
+      14,
+      3,
+      4
+    ],
+    [
+      "DT007",
+      "Maria Goreti, M.Hum.",
+      "1225019308",
+      "Asisten Ahli",
+      "S2",
+      "Sastra & Kajian Budaya",
+      "Sastra Inggris (S1)",
+      "Belum Tersertifikasi",
+      12,
+      2,
+      2
+    ],
+    [
+      "DT008",
+      "Bambang Prasetyo, S.E., M.M.",
+      "1124066509",
+      "Lektor",
+      "S2",
+      "Manajemen & Business English",
+      "D3 Bahasa Inggris & S1 Sastra Inggris",
+      "Tersertifikasi",
+      10,
+      5,
+      2
+    ],
+    [
+      "RINGKASAN SDM (22 Dosen Tetap Total)"
+    ],
+    [
+      "Total Dosen Tetap",
+      null,
+      null,
+      null,
+      "22",
+      null,
+      null,
+      "Target renstra 2025: 25 dosen"
+    ],
+    [
+      "Doktor (S3)",
+      null,
+      null,
+      null,
+      "1",
+      null,
+      null,
+      "1 S3 — rendah, 2 dosen sedang studi S3"
+    ],
+    [
+      "Magister (S2)",
+      null,
+      null,
+      null,
+      "21",
+      null,
+      null,
+      "Semua berijazah minimal S2 — memenuhi syarat"
+    ],
+    [
+      "Lektor Kepala",
+      null,
+      null,
+      null,
+      "1"
+    ],
+    [
+      "Lektor",
+      null,
+      null,
+      null,
+      "12"
+    ],
+    [
+      "Asisten Ahli",
+      null,
+      null,
+      null,
+      "8"
+    ],
+    [
+      "Tersertifikasi",
+      null,
+      null,
+      null,
+      "16 (72.7%)",
+      null,
+      null,
+      "Target 80% di 2025"
+    ],
+    [
+      "Rasio Dosen:Mahasiswa",
+      null,
+      null,
+      null,
+      "1:19.5",
+      null,
+      null,
+      "Maks BAN-PT humaniora 1:30 ✓"
+    ],
+    [
+      "Dosen Tidak Tetap",
+      null,
+      null,
+      null,
+      "8"
+    ],
+    [
+      "Rata-rata EWMP",
+      null,
+      null,
+      null,
+      "11.8 SKS",
+      null,
+      null,
+      "Standar minimal 12 SKS — perlu monitoring"
+    ]
+  ],
+  "3. Data Mahasiswa": [
+    [
+      "DATA MAHASISWA — Kriteria 3 | Tren Positif: 389 → 408 → 429 Mahasiswa Aktif"
+    ],
+    [
+      "⚠️ DATA DUMMY (Berbasis Riset) | Program Studi: S1 Sastra Inggris & D3 Bahasa Inggris | Alamat real: Jl. Gajahmada No.38, Pontianak Selatan | IPK mengacu data nasional Kemdikbudristek 2022"
+    ],
+    [
+      "📌 Dasar Riset: Rasio seleksi 1:1.22 realistis untuk STBA kecil swasta. KIP-Kuliah realistis ~20% dari mhs baru."
+    ],
+    [
+      "Tahun Akademik",
+      "Pendaftar",
+      "Diterima",
+      "Registrasi",
+      "Rasio Seleksi",
+      "Mhs Asing",
+      "KIP-Kuliah",
+      "Total Aktif"
+    ],
+    [
+      "2021/2022",
+      134,
+      112,
+      103,
+      "1:1.20",
+      0,
+      18,
+      389
+    ],
+    [
+      "2022/2023",
+      148,
+      121,
+      115,
+      "1:1.22",
+      1,
+      22,
+      408
+    ],
+    [
+      "2023/2024",
+      162,
+      133,
+      127,
+      "1:1.22",
+      2,
+      26,
+      429
+    ],
+    [
+      "Nama",
+      "NIM",
+      "Prodi",
+      "Prestasi",
+      "Penyelenggara",
+      "Tingkat",
+      "Tahun"
+    ],
+    [
+      "Dewi Ayu Lestari",
+      "20110001",
+      "Sastra Inggris (S1)",
+      "Juara 2 Lomba Debat Bahasa Inggris Se-Kalimantan Barat",
+      "Forum Rektor Kalimantan",
+      "Regional",
+      2023
+    ],
+    [
+      "Kevin Tanaka Wijaya",
+      "21110024",
+      "Sastra Inggris (S1)",
+      "Juara 3 National English Speech Contest",
+      "Ditjen Diktiristek Kemendikbudristek",
+      "Nasional",
+      2023
+    ],
+    [
+      "Siti Rahayu Nurdiana",
+      "20110008",
+      "Sastra Inggris (S1)",
+      "Best Paper Seminar Internasional Linguistik & Sastra",
+      "Universitas Tanjungpura",
+      "Regional",
+      2024
+    ],
+    [
+      "Michael Pratama",
+      "22120031",
+      "Bahasa Inggris (D3)",
+      "Juara 1 Tourism English Presentation Competition",
+      "Dinas Pariwisata Kota Pontianak",
+      "Lokal",
+      2024
+    ],
+    [
+      "Amanda Putri Wulandari",
+      "21110019",
+      "Sastra Inggris (S1)",
+      "Delegasi Indonesia — ASEAN Youth Dialogue",
+      "ASEAN Foundation",
+      "Internasional",
+      2023
+    ]
+  ],
+  "4. Keuangan & Sarpras": [
+    [
+      "KEUANGAN & SARPRAS — Kriteria 5 | Total Anggaran ~Rp 3.5 M/thn (Estimasi Realistis)"
+    ],
+    [
+      "⚠️ DATA DUMMY (Berbasis Riset) | Program Studi: S1 Sastra Inggris & D3 Bahasa Inggris | Alamat real: Jl. Gajahmada No.38, Pontianak Selatan | IPK mengacu data nasional Kemdikbudristek 2022"
+    ],
+    [
+      "📌 Dasar Riset: Pendapatan estimasi SPP Rp3.5jt/smt x 429mhs x 2 + hibah + lain. DOP Rp3.7jt/mhs (standar min BAN-PT Rp2.4jt ✓)"
+    ],
+    [
+      "Tahun Akademik",
+      "SPP/UKT Mhs (Rp)",
+      "Hibah Pemerintah (Rp)",
+      "Pendapatan Lain (Rp)",
+      "Total Pendapatan (Rp)",
+      "DOP/Mhs/Thn (Rp)"
+    ],
+    [
+      "2021/2022",
+      "Rp 2,723,400,000",
+      "Rp 312,000,000",
+      "Rp 87,600,000",
+      "Rp 3,123,000,000",
+      "Rp 3,730,000"
+    ],
+    [
+      "2022/2023",
+      "Rp 2,856,000,000",
+      "Rp 345,000,000",
+      "Rp 99,000,000",
+      "Rp 3,300,000,000",
+      "Rp 3,750,000"
+    ],
+    [
+      "2023/2024",
+      "Rp 3,003,000,000",
+      "Rp 387,000,000",
+      "Rp 110,000,000",
+      "Rp 3,500,000,000",
+      "Rp 3,787,000"
+    ],
+    [
+      "Tahun Akademik",
+      "Ops. Pendidikan (Rp)",
+      "Gaji Dosen+Tendik (Rp)",
+      "Penelitian+PkM (Rp)",
+      "Pengembangan Sarpras (Rp)",
+      "Total Pengeluaran (Rp)"
+    ],
+    [
+      "2021/2022",
+      "Rp 1,450,000,000",
+      "Rp 1,250,000,000",
+      "Rp 180,000,000",
+      "Rp 243,000,000",
+      "Rp 3,123,000,000"
+    ],
+    [
+      "2022/2023",
+      "Rp 1,530,000,000",
+      "Rp 1,310,000,000",
+      "Rp 205,000,000",
+      "Rp 255,000,000",
+      "Rp 3,300,000,000"
+    ],
+    [
+      "2023/2024",
+      "Rp 1,625,000,000",
+      "Rp 1,395,000,000",
+      "Rp 230,000,000",
+      "Rp 250,000,000",
+      "Rp 3,500,000,000"
+    ],
+    [
+      "Nama Laboratorium",
+      "Luas (m2)",
+      "Kapasitas",
+      "Kondisi",
+      "Thn Renovasi",
+      "Perangkat Utama"
+    ],
+    [
+      "Laboratorium Bahasa (Language Lab)",
+      96,
+      30,
+      "Baik",
+      2022,
+      "30 unit headset, soundproof booth, software pronunciation trainer"
+    ],
+    [
+      "Laboratorium Komputer",
+      80,
+      25,
+      "Baik",
+      2023,
+      "25 unit PC, koneksi internet fiber 50 Mbps"
+    ],
+    [
+      "Studio Penerjemahan",
+      48,
+      15,
+      "Cukup",
+      2018,
+      "Booth konsekutif, perangkat lunak CAT (Computer-Assisted Translation)"
+    ]
+  ],
+  "5. Penelitian & PkM": [
+    [
+      "PENELITIAN & PkM — Kriteria 7 & 8 | Realistis: Mayoritas Dana Internal & PKPT Reguler"
+    ],
+    [
+      "⚠️ DATA DUMMY (Berbasis Riset) | Program Studi: S1 Sastra Inggris & D3 Bahasa Inggris | Alamat real: Jl. Gajahmada No.38, Pontianak Selatan | IPK mengacu data nasional Kemdikbudristek 2022"
+    ],
+    [
+      "📌 Dasar Riset: Dana penelitian Rp1.6jt/dosen/thn wajar untuk STBA kecil. Belum ada Scopus 2022-2023, 1 di 2024 (realistis)."
+    ],
+    [
+      "Tahun",
+      "Judul Penelitian",
+      "Ketua",
+      "Sumber Dana",
+      "Dana (Rp)",
+      "Libatkan Mhs",
+      "Status",
+      "Luaran"
+    ],
+    [
+      2022,
+      "Kesalahan Gramatikal Mahasiswa STBA Pontianak dalam Penulisan Esai Bahasa Inggris",
+      "Siti Aminah, M.Pd.",
+      "Internal STBA",
+      "Rp 10,000,000",
+      "Ya (2 mhs)",
+      "Selesai",
+      "Jurnal Nasional (Sinta 5) — Jurnal Pendidikan Bahasa"
+    ],
+    [
+      2022,
+      "Representasi Budaya Dayak dalam Novel Berbahasa Inggris Karya Penulis Kalimantan",
+      "Yusuf Hidayat, M.Hum.",
+      "Kemendikbudristek (PKPT Reguler)",
+      "Rp 30,000,000",
+      "Ya (3 mhs)",
+      "Selesai",
+      "Prosiding Seminar Internasional Bahasa dan Sastra — Terindeks Google Scholar"
+    ],
+    [
+      2023,
+      "Efektivitas Penggunaan AI Chatbot (ChatGPT) dalam Pembelajaran Writing Skills Mahasiswa",
+      "Daniel Kristianto, M.A.",
+      "Kemendikbudristek (PKPT Reguler)",
+      "Rp 35,000,000",
+      "Ya (4 mhs)",
+      "Selesai",
+      "Jurnal Nasional Terakreditasi Sinta 3"
+    ],
+    [
+      2023,
+      "Interferensi Bahasa Melayu Pontianak terhadap Pelafalan Bahasa Inggris Mahasiswa",
+      "Dr. Hj. Ratna Dewi Kusumawati, M.Hum.",
+      "Internal STBA",
+      "Rp 12,000,000",
+      "Ya (2 mhs)",
+      "Selesai",
+      "Jurnal Nasional (Sinta 4)"
+    ],
+    [
+      2024,
+      "Analisis Kebutuhan Bahasa Inggris pada Sektor Pariwisata Halal di Kalimantan Barat",
+      "Bambang Prasetyo, S.E., M.M.",
+      "Kemendikbudristek (PKPT Reguler)",
+      "Rp 38,000,000",
+      "Ya (4 mhs)",
+      "Berjalan",
+      "Target: Jurnal Nasional Sinta 2 + Buku Ajar"
+    ],
+    [
+      "Tahun",
+      "Judul PkM",
+      "Ketua",
+      "Mitra",
+      "Dana (Rp)",
+      "Mhs Terlibat",
+      "Status",
+      "Dampak"
+    ],
+    [
+      2022,
+      "Pelatihan English for Tourism bagi Pemandu Wisata Kota Pontianak",
+      "Drs. Andri Setiawan, M.Pd.",
+      "Dinas Pariwisata Kota Pontianak",
+      "Rp 8,000,000",
+      6,
+      "Selesai",
+      "45 pemandu wisata meningkat kemampuan komunikasinya dengan wisatawan mancanegara"
+    ],
+    [
+      2022,
+      "Pendampingan Penulisan Brosur Pariwisata Berbahasa Inggris UMKM Kerajinan Dayak",
+      "Yusuf Hidayat, M.Hum.",
+      "Dekranasda Kalimantan Barat",
+      "Rp 25,000,000",
+      5,
+      "Selesai",
+      "32 UMKM berhasil membuat brosur produk berbahasa Inggris, 7 di antaranya berhasil ekspor ke Malaysia"
+    ],
+    [
+      2023,
+      "Kelas English for Business bagi Pelaku Usaha Ekspor-Impor di Kawasan Perbatasan Entikong",
+      "Bambang Prasetyo, S.E., M.M.",
+      "Kantor Imigrasi Kelas II Entikong",
+      "Rp 28,000,000",
+      8,
+      "Selesai",
+      "68 pelaku usaha perbatasan terlatih komunikasi bisnis bahasa Inggris dasar"
+    ],
+    [
+      2023,
+      "Pendampingan Literasi Bahasa Inggris Siswa MTs di Kecamatan Terisolir Kubu Raya",
+      "Siti Aminah, M.Pd.",
+      "MTs Hidayatul Ulum Kubu Raya",
+      "Rp 9,500,000",
+      10,
+      "Selesai",
+      "87 siswa MTs mendapatkan pendampingan intensif English grammar dan reading"
+    ],
+    [
+      2024,
+      "Pelatihan Penulisan CV dan Wawancara Kerja Berbahasa Inggris bagi Lulusan SMK di Pontianak",
+      "Daniel Kristianto, M.A.",
+      "BLK (Balai Latihan Kerja) Kota Pontianak",
+      "Rp 30,000,000",
+      12,
+      "Berjalan",
+      "Target: 150 lulusan SMK siap memasuki dunia kerja dengan kemampuan bahasa Inggris dasar"
+    ]
+  ],
+  "6. Luaran & Capaian": [
+    [
+      "LUARAN & CAPAIAN TRIDHARMA — Kriteria 9 | IPK ~3.38 Sesuai Data Nasional Humaniora"
+    ],
+    [
+      "⚠️ DATA DUMMY (Berbasis Riset) | Program Studi: S1 Sastra Inggris & D3 Bahasa Inggris | Alamat real: Jl. Gajahmada No.38, Pontianak Selatan | IPK mengacu data nasional Kemdikbudristek 2022"
+    ],
+    [
+      "📌 Dasar Riset: IPK rata-rata humaniora nasional 3.35 (Kemdikbudristek 2022). STBA bahasa estimasi sedikit lebih tinggi: 3.36-3.41."
+    ],
+    [
+      "Tahun Akademik",
+      "Jml Lulusan",
+      "IPK Rata-rata",
+      "IPK Tertinggi",
+      "IPK Terendah",
+      "Cumlaude",
+      "Sangat Memuaskan",
+      "Memuaskan"
+    ],
+    [
+      "2021/2022",
+      87,
+      3.36,
+      3.91,
+      2.65,
+      12,
+      45,
+      30
+    ],
+    [
+      "2022/2023",
+      94,
+      3.38,
+      3.94,
+      2.71,
+      15,
+      49,
+      30
+    ],
+    [
+      "2023/2024",
+      102,
+      3.41,
+      3.97,
+      2.78,
+      17,
+      54,
+      31
+    ],
+    [
+      "Tahun Akademik",
+      "S1 Rata-rata (Smt)",
+      "S1 Tepat Waktu (%)",
+      "D3 Rata-rata (Smt)",
+      "D3 Tepat Waktu (%)",
+      "Catatan"
+    ],
+    [
+      "2021/2022",
+      8.7,
+      "68.2%",
+      6.4,
+      "71.4%",
+      "Masa studi 8.7 semester (S1) realistis — mahasiswa sering mengulang karena kesibukan kerja sambil kuliah"
+    ],
+    [
+      "2022/2023",
+      8.5,
+      "71.3%",
+      6.2,
+      "74.5%",
+      "-"
+    ],
+    [
+      "2023/2024",
+      8.3,
+      "74.5%",
+      6.1,
+      "77.8%",
+      "Tren membaik karena program bimbingan akademik lebih intensif"
+    ],
+    [
+      "Tahun",
+      "Scopus",
+      "Intl Non-Scopus",
+      "Sinta 1-2",
+      "Sinta 3-4",
+      "Sinta 5-6",
+      "Prosiding Intl",
+      "Prosiding Nas",
+      "Total"
+    ],
+    [
+      2022,
+      0,
+      1,
+      1,
+      3,
+      4,
+      2,
+      3,
+      14
+    ],
+    [
+      2023,
+      0,
+      2,
+      2,
+      4,
+      5,
+      2,
+      4,
+      19
+    ],
+    [
+      2024,
+      1,
+      2,
+      3,
+      5,
+      4,
+      3,
+      5,
+      23
+    ]
+  ],
+  "7. Kerjasama": [
+    [
+      "DATA KERJASAMA (MoU/MoA) — Kriteria 2: Tata Pamong | 6 Kerjasama Aktif"
+    ],
+    [
+      "⚠️ DATA DUMMY (Berbasis Riset) | Program Studi: S1 Sastra Inggris & D3 Bahasa Inggris | Alamat real: Jl. Gajahmada No.38, Pontianak Selatan | IPK mengacu data nasional Kemdikbudristek 2022"
+    ],
+    [
+      "📌 Dasar Riset: Kerjasama British Council, UNTAN, Dinas Pariwisata, hotel, SMA Negeri, Konsulat Malaysia — realistis untuk STBA Pontianak"
+    ],
+    [
+      "Nama Mitra",
+      "Jenis",
+      "Bidang Kerjasama",
+      "Level",
+      "Thn Mulai",
+      "Thn Berakhir",
+      "Status"
+    ],
+    [
+      "British Council Indonesia",
+      "MoU",
+      "Peningkatan kompetensi bahasa Inggris dosen dan mahasiswa, akses materi Cambridge",
+      "Internasional",
+      2021,
+      2026,
+      "Aktif"
+    ],
+    [
+      "Universitas Tanjungpura Pontianak",
+      "MoA",
+      "Pertukaran dosen pengajar, joint research bidang linguistik dan sastra",
+      "Nasional",
+      2020,
+      2025,
+      "Aktif"
+    ],
+    [
+      "Pemerintah Kota Pontianak (Dinas Pariwisata)",
+      "MoU",
+      "Pelatihan bahasa Inggris untuk pelaku wisata dan pemandu wisata kota Pontianak",
+      "Lokal/Wilayah",
+      2022,
+      2027,
+      "Aktif"
+    ],
+    [
+      "Hotel Mercure Pontianak",
+      "MoA",
+      "Program magang mahasiswa D3 Bahasa Inggris di departemen front office dan housekeeping",
+      "Lokal/Wilayah",
+      2021,
+      2024,
+      "Aktif"
+    ],
+    [
+      "SMA Negeri 1 Pontianak",
+      "MoU",
+      "Rekrutmen calon mahasiswa, pelatihan bahasa Inggris siswa, dan pemberdayaan alumni",
+      "Lokal/Wilayah",
+      2022,
+      2025,
+      "Aktif"
+    ],
+    [
+      "Konsulat Malaysia di Pontianak",
+      "MoU",
+      "Program pertukaran budaya dan kunjungan akademik mahasiswa",
+      "Internasional",
+      2023,
+      2026,
+      "Aktif"
+    ]
+  ],
+  "8. Tracer Study": [
+    [
+      "TRACER STUDY 2024 — Kriteria 9 | Responden 61.8%, Kesesuaian Kerja 62.3%"
+    ],
+    [
+      "⚠️ DATA DUMMY (Berbasis Riset) | Program Studi: S1 Sastra Inggris & D3 Bahasa Inggris | Alamat real: Jl. Gajahmada No.38, Pontianak Selatan | IPK mengacu data nasional Kemdikbudristek 2022"
+    ],
+    [
+      "📌 Dasar Riset: Waktu tunggu & kesesuaian kerja realistis untuk STBA kecil. Adaptasi teknologi 3.74 — gap yang perlu diperbaiki."
+    ],
+    [
+      "Indikator Tracer Study",
+      "Nilai/Persentase",
+      "Keterangan & Analisis"
+    ],
+    [
+      "Tahun Pelaksanaan",
+      "2024",
+      "Angkatan target: 2019-2021"
+    ],
+    [
+      "Persentase Responden",
+      "61.8%",
+      "61.8% responden — di bawah ideal 80% tapi umum untuk PT swasta kecil yang alumni-nya tersebar"
+    ],
+    [
+      "Waktu Tunggu < 3 Bulan",
+      "38.4%",
+      "Positif: hampir 40% langsung dapat kerja < 3 bulan"
+    ],
+    [
+      "Waktu Tunggu 3-6 Bulan",
+      "34.2%",
+      "Normal"
+    ],
+    [
+      "Waktu Tunggu > 6 Bulan",
+      "27.4%",
+      "27.4% lebih dari 6 bulan — menunjukkan masih ada gap antara kompetensi dan kebutuhan industri"
+    ],
+    [
+      "Kesesuaian Bidang Kerja",
+      "62.3%",
+      "62.3% sesuai bidang — wajar untuk jurusan bahasa yang lulusannya bekerja di berbagai sektor"
+    ],
+    [
+      "Kepuasan — Integritas/Etika",
+      "4.08/5",
+      "Nilai tertinggi ke-2"
+    ],
+    [
+      "Kepuasan — Kemampuan Bahasa Inggris",
+      "4.21/5",
+      "Nilai tertinggi — sesuai core competency STBA"
+    ],
+    [
+      "Kepuasan — Kerja Tim",
+      "3.87/5",
+      "Perlu peningkatan melalui project-based learning"
+    ],
+    [
+      "Kepuasan — Komunikasi",
+      "4.15/5",
+      "Baik"
+    ],
+    [
+      "Kepuasan — Adaptasi Teknologi",
+      "3.74/5",
+      "Nilai adaptasi teknologi 3.74 menunjukkan perlunya penguatan literasi digital dalam kurikulum"
+    ],
+    [
+      "Bidang Kerja Lulusan",
+      "Persentase (%)",
+      "Catatan"
+    ],
+    [
+      "Pendidikan Dan Pelatihan Bahasa",
+      "34.7%",
+      "Bidang terbesar — sesuai visi STBA"
+    ],
+    [
+      "Penerjemah Interpreter",
+      "18.6%"
+    ],
+    [
+      "Bisnis Dan Perdagangan Internasional",
+      "16.3%"
+    ],
+    [
+      "Perhotelan Pariwisata",
+      "13.9%"
+    ],
+    [
+      "Pemerintahan Asc",
+      "9.8%"
+    ],
+    [
+      "Lainnya",
+      "6.7%"
+    ]
+  ]
+}
