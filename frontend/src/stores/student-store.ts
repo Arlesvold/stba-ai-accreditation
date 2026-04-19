@@ -123,11 +123,6 @@ export const useStudentStore = create<StudentState>((set) => ({
         0,
       );
 
-      const achievementTotal = summaries.reduce(
-        (sum, item) => sum + (item.studentAchievementsTotal ?? 0),
-        0,
-      );
-
       const validRates = outcomes
         .map((item) => item.fieldAlignmentPct)
         .filter((value): value is number => typeof value === "number");

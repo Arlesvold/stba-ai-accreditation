@@ -20,7 +20,6 @@ const config: Config = {
 			label11: ["0.6875rem", { lineHeight: "1.4", fontWeight: "500" }],
 		},
   		colors: {
-			primary: '#2563EB',
 			sidebar: '#0F172A',
 			surface: '#FFFFFF',
 			page: '#F8FAFC',

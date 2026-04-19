@@ -1,4 +1,4 @@
--- =============================================
+﻿-- =============================================
 -- SEED DATA: Sekolah Tinggi Bahasa Asing (STBA) Pontianak
 -- Data dummy realistis untuk keperluan pengembangan & testing
 -- =============================================
@@ -743,16 +743,16 @@ INSERT INTO roles (id, role_code, role_name) VALUES
 ('a0100000-0000-0000-0000-000000000005', 'reviewer_akademik',  'Reviewer Akademik'),
 ('a0100000-0000-0000-0000-000000000006', 'operator_data',      'Operator Data');
 
--- Users (password_hash = bcrypt dummy, JANGAN dipakai di production)
+-- Users (default password semua akun seed: Stba12345!, hash valid bcrypt; JANGAN dipakai di production)
 INSERT INTO users (id, institution_id, full_name, email, password_hash, is_active) VALUES
-('a1000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', 'Super Admin STBA',              'admin@stbapontianak.ac.id',         '$2b$12$dummyhash.superadmin.stba.pontianak000000', TRUE),
-('a1000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000001', 'Dr. Ahmad Fauzi, M.Hum.',       'ahmad.fauzi@stbapontianak.ac.id',   '$2b$12$dummyhash.ahmadfauzi.stba.pontianak00000', TRUE),
-('a1000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000001', 'Dr. Hj. Ratna Sari, M.Hum.',    'ratna.sari@stbapontianak.ac.id',    '$2b$12$dummyhash.ratnasari.stba.pontianak000000', TRUE),
-('a1000000-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000001', 'Dr. Maria Hartati, M.A.',       'maria.hartati@stbapontianak.ac.id', '$2b$12$dummyhash.mariahartati.stba.pontianak000', TRUE),
-('a1000000-0000-0000-0000-000000000005', 'a0000000-0000-0000-0000-000000000001', 'Dr. Kenji Tanaka, M.A.',        'kenji.tanaka@stbapontianak.ac.id',  '$2b$12$dummyhash.kenjitanaka.stba.pontianak0000', TRUE),
-('a1000000-0000-0000-0000-000000000006', 'a0000000-0000-0000-0000-000000000001', 'Drs. Budi Santoso, M.Pd.',      'budi.santoso@stbapontianak.ac.id',  '$2b$12$dummyhash.budisantoso.stba.pontianak0000', TRUE),
-('a1000000-0000-0000-0000-000000000007', 'a0000000-0000-0000-0000-000000000001', 'Siti Nurhaliza, S.S., M.Hum.',  'siti.nurhaliza@stbapontianak.ac.id','$2b$12$dummyhash.sitinurhaliza.stba.pontianak00', TRUE),
-('a1000000-0000-0000-0000-000000000008', 'a0000000-0000-0000-0000-000000000001', 'Rina Operator',                 'rina.operator@stbapontianak.ac.id', '$2b$12$dummyhash.rinaoperator.stba.pontianak000', TRUE);
+('a1000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', 'Super Admin STBA',              'admin@stbapontianak.ac.id',         '$2b$10$nFJaLBxy1Gz00lDyfNqgVu43wPvu9EvTrGZNkR/J/oig4/agGe/26', TRUE),
+('a1000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000001', 'Dr. Ahmad Fauzi, M.Hum.',       'ahmad.fauzi@stbapontianak.ac.id',   '$2b$10$nFJaLBxy1Gz00lDyfNqgVu43wPvu9EvTrGZNkR/J/oig4/agGe/26', TRUE),
+('a1000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000001', 'Dr. Hj. Ratna Sari, M.Hum.',    'ratna.sari@stbapontianak.ac.id',    '$2b$10$nFJaLBxy1Gz00lDyfNqgVu43wPvu9EvTrGZNkR/J/oig4/agGe/26', TRUE),
+('a1000000-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000001', 'Dr. Maria Hartati, M.A.',       'maria.hartati@stbapontianak.ac.id', '$2b$10$nFJaLBxy1Gz00lDyfNqgVu43wPvu9EvTrGZNkR/J/oig4/agGe/26', TRUE),
+('a1000000-0000-0000-0000-000000000005', 'a0000000-0000-0000-0000-000000000001', 'Dr. Kenji Tanaka, M.A.',        'kenji.tanaka@stbapontianak.ac.id',  '$2b$10$nFJaLBxy1Gz00lDyfNqgVu43wPvu9EvTrGZNkR/J/oig4/agGe/26', TRUE),
+('a1000000-0000-0000-0000-000000000006', 'a0000000-0000-0000-0000-000000000001', 'Drs. Budi Santoso, M.Pd.',      'budi.santoso@stbapontianak.ac.id',  '$2b$10$nFJaLBxy1Gz00lDyfNqgVu43wPvu9EvTrGZNkR/J/oig4/agGe/26', TRUE),
+('a1000000-0000-0000-0000-000000000007', 'a0000000-0000-0000-0000-000000000001', 'Siti Nurhaliza, S.S., M.Hum.',  'siti.nurhaliza@stbapontianak.ac.id','$2b$10$nFJaLBxy1Gz00lDyfNqgVu43wPvu9EvTrGZNkR/J/oig4/agGe/26', TRUE),
+('a1000000-0000-0000-0000-000000000008', 'a0000000-0000-0000-0000-000000000001', 'Rina Operator',                 'rina.operator@stbapontianak.ac.id', '$2b$10$nFJaLBxy1Gz00lDyfNqgVu43wPvu9EvTrGZNkR/J/oig4/agGe/26', TRUE);
 
 -- Roles sudah di-seed di DDL, ambil ID-nya
 -- Kita perlu mendapatkan role IDs. Karena DDL seed tidak pakai UUID fixed, kita pakai subquery.

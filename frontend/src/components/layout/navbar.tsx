@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +23,6 @@ interface NavbarProps {
 }
 
 export function Navbar({ sidebarCollapsed, onMenuClick }: NavbarProps) {
-  const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuthStore();
   const profile = user as { name?: string; fullName?: string; email?: string } | null;
