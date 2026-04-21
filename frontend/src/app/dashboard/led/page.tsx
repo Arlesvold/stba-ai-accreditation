@@ -218,8 +218,63 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
-function humanizeKey(key: string) {
+const METRIC_LABELS_ID: Record<string, string> = {
+  active_study_programs_total: "Jumlah Program Studi Aktif",
+  organization_units_total: "Jumlah Unit Organisasi",
+  vmts_version: "Versi VMTS",
+  supporting_evidence_total: "Jumlah Bukti Pendukung",
+  applicants_total: "Jumlah Pendaftar",
+  new_students_total: "Jumlah Mahasiswa Baru",
+  active_students_total: "Jumlah Mahasiswa Aktif",
+  dropout_rate_pct: "Persentase Putus Studi",
+  student_achievements_total: "Jumlah Prestasi Mahasiswa",
+  mbkm_students_total: "Jumlah Mahasiswa MBKM",
+  permanent_lecturers_total: "Jumlah Dosen Tetap",
+  non_permanent_lecturers_total: "Jumlah Dosen Tidak Tetap",
+  masters_lecturers_total: "Jumlah Dosen Magister",
+  doctoral_lecturers_total: "Jumlah Dosen Doktor",
+  lecturer_certified_total: "Jumlah Dosen Bersertifikat",
+  lecturer_student_ratio: "Rasio Dosen terhadap Mahasiswa",
+  operational_budget: "Anggaran Operasional",
+  research_budget: "Anggaran Penelitian",
+  service_budget: "Anggaran Pengabdian",
+  scholarship_budget: "Anggaran Beasiswa",
+  classrooms_total: "Jumlah Ruang Kelas",
+  labs_total: "Jumlah Laboratorium",
+  library_collections_total: "Jumlah Koleksi Perpustakaan",
+  internet_coverage_pct: "Persentase Cakupan Internet",
+  obe_implemented_pct: "Persentase Implementasi OBE",
+  rps_complete_pct: "Persentase Kelengkapan RPS",
+  mbkm_courses_pct: "Persentase Mata Kuliah MBKM",
+  research_grants_total: "Jumlah Hibah Penelitian",
+  publications_total: "Jumlah Publikasi",
+  scopus_total: "Jumlah Publikasi Scopus",
+  ipr_total: "Jumlah HKI",
+  citation_total: "Jumlah Sitasi",
+  service_programs_total: "Jumlah Program Pengabdian",
+  service_partners_total: "Jumlah Mitra Pengabdian",
+  service_outputs_total: "Jumlah Luaran Pengabdian",
+  avg_gpa: "Rata-rata IPK",
+  avg_study_period_years: "Rata-rata Masa Studi (Tahun)",
+  employment_wait_months: "Masa Tunggu Kerja (Bulan)",
+  field_alignment_pct: "Persentase Kesesuaian Bidang Kerja",
+  continuing_study_pct: "Persentase Studi Lanjut",
+  iku_metrics_total: "Jumlah Metrik IKU",
+};
+
+function normalizeMetricKey(key: string) {
   return key
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .replace(/\s+/g, "_")
+    .toLowerCase();
+}
+
+function humanizeKey(key: string) {
+  const normalizedKey = normalizeMetricKey(key);
+  const translatedLabel = METRIC_LABELS_ID[normalizedKey];
+  if (translatedLabel) return translatedLabel;
+
+  return normalizedKey
     .replace(/_/g, " ")
     .replace(/\s+/g, " ")
     .trim()
@@ -228,7 +283,7 @@ function humanizeKey(key: string) {
 
 function toDisplayValue(value: unknown) {
   if (typeof value === "number") return value.toLocaleString("id-ID");
-  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "boolean") return value ? "Ya" : "Tidak";
   if (value === null || value === undefined) return "-";
   return String(value);
 }
@@ -250,23 +305,41 @@ function normalizeDocumentText(text: string) {
   return text.replace(/\r\n/g, "\n").trim();
 }
 
-async function tryDownloadFromStorage(fileKey: string, fileName: string) {
-  const base = process.env.NEXT_PUBLIC_MINIO_BASE_URL;
-  if (!base) return false;
+function applyApprovedContentToSections(
+  sections: LedDownloadSection[],
+  approved: DraftVersion
+) {
+  const approvedText = normalizeDocumentText(approved.content);
+  const criterionCode = approved.criterionNo ? `LED-C${approved.criterionNo}` : null;
 
-  const normalizedKey = fileKey.replace(/^\/+/, "");
-  const fileUrl = `${base.replace(/\/$/, "")}/${normalizedKey}`;
-
-  try {
-    const response = await fetch(fileUrl);
-    if (!response.ok) return false;
-
-    const blob = await response.blob();
-    triggerDownload(blob, fileName);
-    return true;
-  } catch {
-    return false;
+  if (sections.length === 0) {
+    return [
+      {
+        sectionCode: criterionCode ?? "LED-CUSTOM",
+        sectionName: approved.label,
+        sectionText: approvedText,
+        evidenceBindings: [],
+      },
+    ];
   }
+
+  if (criterionCode) {
+    const hasMatchedCode = sections.some(
+      (section) => section.sectionCode === criterionCode
+    );
+
+    if (hasMatchedCode) {
+      return sections.map((section) =>
+        section.sectionCode === criterionCode
+          ? { ...section, sectionText: approvedText }
+          : section
+      );
+    }
+  }
+
+  return sections.map((section, index) =>
+    index === 0 ? { ...section, sectionText: approvedText } : section
+  );
 }
 
 async function buildDocxBlob(title: string, sections: LedDownloadSection[]) {
@@ -646,25 +719,13 @@ export default function LedPage() {
       );
 
       const payload = response.data.data;
-      const fileKey = targetFormat === "docx" ? payload.docxFileKey : payload.pdfFileKey;
       const safeTitle = sanitizeFileName(payload.title ?? "LED-Workspace");
       const fileName = `${safeTitle}.${targetFormat}`;
 
-      const downloadedFromStorage = fileKey
-        ? await tryDownloadFromStorage(fileKey, fileName)
-        : false;
-
-      if (downloadedFromStorage) {
-        setLastExportMessage(
-          `File ${targetFormat.toUpperCase()} berhasil diunduh dari storage.`
-        );
-        return;
-      }
-
-      const sections = payload.sections ?? [];
-      if (sections.length === 0) {
-        throw new Error("Dokumen belum memiliki section output untuk diekspor.");
-      }
+      const sections = applyApprovedContentToSections(
+        payload.sections ?? [],
+        approvedVersion
+      );
 
       if (targetFormat === "docx") {
         const blob = await buildDocxBlob(payload.title ?? "LED Workspace", sections);
@@ -675,7 +736,7 @@ export default function LedPage() {
       }
 
       setLastExportMessage(
-        `File ${targetFormat.toUpperCase()} berhasil diekspor sesuai format yang dipilih.`
+        `File ${targetFormat.toUpperCase()} berhasil diekspor dari versi draft yang sudah di-approval.`
       );
     } catch {
       setWorkspaceError("Gagal mengekspor dokumen LED.");
