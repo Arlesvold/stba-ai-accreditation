@@ -1,11 +1,18 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Minio from 'minio';
 
 @Injectable()
 export class FilesService implements OnModuleInit {
+  private readonly logger = new Logger(FilesService.name);
   private minioClient: Minio.Client;
   private bucket: string;
+  private storageReady = false;
 
   constructor(private configService: ConfigService) {
     this.bucket = this.configService.get<string>('MINIO_BUCKET', 'stba-ai-files');
@@ -19,13 +26,31 @@ export class FilesService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    const exists = await this.minioClient.bucketExists(this.bucket);
-    if (!exists) {
-      await this.minioClient.makeBucket(this.bucket);
+    try {
+      const exists = await this.minioClient.bucketExists(this.bucket);
+      if (!exists) {
+        await this.minioClient.makeBucket(this.bucket);
+      }
+      this.storageReady = true;
+    } catch (error) {
+      this.storageReady = false;
+      this.logger.warn(
+        `MinIO is unavailable. File upload endpoints will be disabled. ${String(error)}`,
+      );
+    }
+  }
+
+  private ensureStorageReady() {
+    if (!this.storageReady) {
+      throw new ServiceUnavailableException(
+        'File storage service is unavailable. Please start MinIO and try again.',
+      );
     }
   }
 
   async upload(file: Express.Multer.File, folder?: string) {
+    this.ensureStorageReady();
+
     const fileName = folder
       ? `${folder}/${Date.now()}-${file.originalname}`
       : `${Date.now()}-${file.originalname}`;
@@ -49,6 +74,7 @@ export class FilesService implements OnModuleInit {
   }
 
   async delete(fileName: string) {
+    this.ensureStorageReady();
     await this.minioClient.removeObject(this.bucket, fileName);
     return { success: true, data: null, message: 'File berhasil dihapus' };
   }

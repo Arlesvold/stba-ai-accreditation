@@ -3,7 +3,6 @@
 import { ChangeEvent, useRef, useState } from "react";
 import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -61,7 +60,6 @@ type ObeImportPayload = {
   programStudy?: string;
   academicYear?: string;
   draftVersion?: string;
-  evidenceCount?: number;
   data?: ObeData;
   output?: {
     markdown?: string;
@@ -92,7 +90,6 @@ export default function ObePage() {
   const [programStudy, setProgramStudy] = useState(PROGRAM_STUDY_OPTIONS[0]);
   const [academicYear, setAcademicYear] = useState(ACADEMIC_YEAR_OPTIONS[2]);
   const [draftVersion, setDraftVersion] = useState(DRAFT_VERSION_OPTIONS[0]);
-  const [evidenceCount, setEvidenceCount] = useState(18);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -162,7 +159,8 @@ export default function ObePage() {
           <meta charset="utf-8" />
           <title>Dokumen OBE</title>
           <style>
-            body { font-family: Cambria, Georgia, serif; color: #111827; margin: 40px; line-height: 1.45; }
+            @page { margin: 24mm 18mm 20mm 18mm; }
+            body { font-family: Cambria, Georgia, serif; color: #111827; margin: 0; line-height: 1.45; }
             h1,h2,h3 { margin: 0 0 10px 0; }
             h1 { font-size: 24px; }
             h2 { font-size: 18px; margin-top: 16px; }
@@ -172,41 +170,64 @@ export default function ObePage() {
             th, td { border: 1px solid #cbd5e1; padding: 7px; font-size: 12px; vertical-align: top; }
             th { background: #f1f5f9; text-align: left; }
             .meta { background: #f8fafc; border: 1px solid #cbd5e1; padding: 12px; margin: 10px 0 14px 0; }
+            .container { padding: 0; }
+            .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 16px; }
+            .logo { width: 44px; height: 44px; border: 2px solid #0f172a; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+            .header-meta { text-align: right; font-size: 11px; color: #334155; }
+            .footer { position: fixed; bottom: 8mm; left: 18mm; right: 18mm; border-top: 1px solid #cbd5e1; padding-top: 4px; font-size: 10px; color: #64748b; display: flex; justify-content: space-between; }
+            .pageNumber::after { content: counter(page); }
           </style>
         </head>
         <body>
-          <h1>KURIKULUM OUTCOME-BASED EDUCATION (OBE)</h1>
-          <p><strong>${obeData.metadata?.institutionName ?? "STBA Pontianak"}</strong></p>
-          <div class="meta">
-            <p><strong>Program Studi:</strong> ${obeData.metadata?.programStudy ?? "-"}</p>
-            <p><strong>Tahun Akademik:</strong> ${obeData.metadata?.academicYear ?? "-"}</p>
-            <p><strong>Tanggal Generate:</strong> ${obeData.metadata?.generatedDate ?? "-"}</p>
-            <p><strong>Versi Draft:</strong> ${obeData.metadata?.draftVersion ?? "-"}</p>
+          <div class="container">
+            <div class="header">
+              <div class="logo">STBA</div>
+              <div>
+                <h1>KURIKULUM OUTCOME-BASED EDUCATION (OBE)</h1>
+                <p><strong>${obeData.metadata?.institutionName ?? "STBA Pontianak"}</strong></p>
+              </div>
+              <div class="header-meta">
+                <div>AI Accreditation Intelligence System</div>
+                <div>Draft ${obeData.metadata?.draftVersion ?? "-"}</div>
+              </div>
+            </div>
+
+            <div class="meta">
+              <p><strong>Program Studi:</strong> ${obeData.metadata?.programStudy ?? "-"}</p>
+              <p><strong>Tahun Akademik:</strong> ${obeData.metadata?.academicYear ?? "-"}</p>
+              <p><strong>Tanggal Generate:</strong> ${obeData.metadata?.generatedDate ?? "-"}</p>
+              <p><strong>Versi Draft:</strong> ${obeData.metadata?.draftVersion ?? "-"}</p>
+            </div>
+
+            <h2>1. Profil Lulusan</h2>
+            <ul>${gpList}</ul>
+
+            <h2>2. Program Learning Outcomes (PLO)</h2>
+            <table>
+              <thead><tr><th>No</th><th>Kode</th><th>Judul</th><th>Deskripsi</th></tr></thead>
+              <tbody>${pRows}</tbody>
+            </table>
+
+            <h2>3. Mapping Mata Kuliah ke PLO (Contoh Semester 1-4)</h2>
+            <table>
+              <thead><tr><th>Mata Kuliah</th><th>SKS</th><th>CLO Utama</th><th>PLO Didukung</th></tr></thead>
+              <tbody>${mRows}</tbody>
+            </table>
+
+            <h2>4. Contoh CLO - ${obeData.sections?.sampleCourseName ?? "-"}</h2>
+            <ul>${cloList}</ul>
+
+            <h2>5. Assessment</h2>
+            <p>UTS ${obeData.sections?.assessment?.utsPercent ?? 0}% | UAS ${obeData.sections?.assessment?.uasPercent ?? 0}% | Tugas ${obeData.sections?.assessment?.assignmentPercent ?? 0}%</p>
+
+            <h3>Catatan AI</h3>
+            <p>${obeData.sections?.aiNote ?? "-"}</p>
           </div>
 
-          <h2>1. Profil Lulusan</h2>
-          <ul>${gpList}</ul>
-
-          <h2>2. Program Learning Outcomes (PLO)</h2>
-          <table>
-            <thead><tr><th>No</th><th>Kode</th><th>Judul</th><th>Deskripsi</th></tr></thead>
-            <tbody>${pRows}</tbody>
-          </table>
-
-          <h2>3. Mapping Mata Kuliah ke PLO</h2>
-          <table>
-            <thead><tr><th>Mata Kuliah</th><th>SKS</th><th>CLO Utama</th><th>PLO Didukung</th></tr></thead>
-            <tbody>${mRows}</tbody>
-          </table>
-
-          <h2>4. Contoh CLO - ${obeData.sections?.sampleCourseName ?? "-"}</h2>
-          <ul>${cloList}</ul>
-
-          <h2>5. Assessment</h2>
-          <p>UTS ${obeData.sections?.assessment?.utsPercent ?? 0}% | UAS ${obeData.sections?.assessment?.uasPercent ?? 0}% | Tugas ${obeData.sections?.assessment?.assignmentPercent ?? 0}%</p>
-
-          <h3>Catatan AI</h3>
-          <p>${obeData.sections?.aiNote ?? "-"}</p>
+          <div class="footer">
+            <span>Sekolah Tinggi Bahasa Asing (STBA) Pontianak</span>
+            <span>Halaman <span class="pageNumber"></span></span>
+          </div>
         </body>
       </html>
     `;
@@ -253,7 +274,6 @@ export default function ObePage() {
       programStudy,
       academicYear,
       draftVersion,
-      evidenceCount,
       data: obeData,
     };
 
@@ -279,8 +299,6 @@ export default function ObePage() {
       if (parsed.programStudy) setProgramStudy(parsed.programStudy);
       if (parsed.academicYear) setAcademicYear(parsed.academicYear);
       if (parsed.draftVersion) setDraftVersion(parsed.draftVersion);
-      if (typeof parsed.evidenceCount === "number") setEvidenceCount(parsed.evidenceCount);
-
       if (importedData) {
         setObeData(importedData);
         setMarkdown(importedData.output?.markdown ?? parsed.output?.markdown ?? "");
@@ -310,7 +328,6 @@ export default function ObePage() {
           year: "numeric",
         }),
         draftVersion,
-        evidenceCount,
       };
 
       const response = await api.post<ObeResponse>("/obe/generate-draft", payload);
@@ -434,19 +451,6 @@ export default function ObePage() {
               </select>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="evidenceCount">
-                Jumlah Evidence
-              </label>
-              <Input
-                id="evidenceCount"
-                type="number"
-                min={0}
-                value={evidenceCount}
-                onChange={(e) => setEvidenceCount(Number(e.target.value))}
-              />
-            </div>
-
             <Button onClick={handleGenerate} disabled={loading} className="w-full">
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               <Sparkles className="mr-2 h-4 w-4" />
@@ -477,7 +481,7 @@ export default function ObePage() {
                   </div>
                   <div className="rounded-md border bg-muted/20 p-3 text-sm">
                     <p className="text-xs text-muted-foreground">Evidence Digunakan</p>
-                    <p className="text-lg font-semibold">{obeData.insights?.evidenceCountUsed ?? evidenceCount}</p>
+                    <p className="text-lg font-semibold">{obeData.insights?.evidenceCountUsed ?? "-"}</p>
                   </div>
                   <div className="rounded-md border bg-muted/20 p-3 text-sm">
                     <p className="text-xs text-muted-foreground">Last Generated</p>
@@ -531,7 +535,7 @@ export default function ObePage() {
                 </div>
 
                 <div>
-                  <h3 className="mb-2 text-sm font-semibold">Mapping Mata Kuliah ke PLO</h3>
+                  <h3 className="mb-2 text-sm font-semibold">Mapping Mata Kuliah ke PLO (Contoh Semester 1-4)</h3>
                   <div className="overflow-auto rounded-md border">
                     <table className="w-full text-left text-sm">
                       <thead className="bg-muted/40">

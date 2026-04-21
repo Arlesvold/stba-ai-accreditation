@@ -47,8 +47,6 @@ export class ObeService {
     const draftVersion = dto.draftVersion ?? '1.0 (AI Generated)';
     const programStudy = dto.programStudy ?? 'S1 Sastra Inggris';
     const academicYear = dto.academicYear ?? '2026/2027';
-    const evidenceCount = dto.evidenceCount ?? 18;
-    const confidenceScore = this.calculateConfidenceScore(evidenceCount, dto);
     const lastGeneratedAt = new Date().toISOString();
 
     const graduateProfiles = dto.graduateProfiles ?? [
@@ -89,7 +87,7 @@ export class ObeService {
         code: 'PLO-4',
         title: 'Etika Profesional dan Kepemimpinan',
         description:
-          'Mahasiswa mampu menerapkan nilai etika dan kepemimpinan dalam konteks profesional.',
+          'Mahasiswa mampu mengambil keputusan akademik-profesional secara etis, memimpin tim kerja, dan mempertanggungjawabkan hasil kerja sesuai kode etik akademik.',
       },
       {
         code: 'PLO-5',
@@ -101,7 +99,7 @@ export class ObeService {
         code: 'PLO-6',
         title: 'Kolaborasi dan Pengabdian Berbasis Keilmuan',
         description:
-          'Mahasiswa mampu berkolaborasi dalam tim multidisiplin dan menerapkan keilmuan untuk kebutuhan masyarakat.',
+          'Mahasiswa mampu merancang dan melaksanakan program kolaboratif lintas disiplin berbasis kebutuhan masyarakat serta mengevaluasi dampaknya secara terukur.',
       },
     ];
 
@@ -174,6 +172,14 @@ export class ObeService {
       },
     ];
 
+    const evidenceCount = this.estimateEvidenceCount(
+      graduateProfiles.length,
+      plos.length,
+      courseMappings.length,
+      sampleClos.length,
+    );
+    const confidenceScore = this.calculateConfidenceScore(evidenceCount, dto);
+
     const aiNote = `Draft Kurikulum OBE ini dihasilkan otomatis berdasarkan data profil prodi, data dosen, dan standar OBE nasional. Evidence Binding telah dilakukan terhadap ${evidenceCount} dokumen pendukung. Mohon dilakukan validasi akhir oleh Ketua Program Studi sebelum digunakan.`;
 
     const payload: ObeDraftPayload = {
@@ -240,6 +246,21 @@ export class ObeService {
     if (hasCustomMappings) score += 6;
 
     return Math.min(98, score);
+  }
+
+  private estimateEvidenceCount(
+    graduateProfileCount: number,
+    ploCount: number,
+    mappingCount: number,
+    cloCount: number,
+  ) {
+    const estimated =
+      6 +
+      graduateProfileCount * 1 +
+      ploCount * 1 +
+      mappingCount * 1 +
+      cloCount * 1;
+    return Math.max(12, Math.min(25, estimated));
   }
 
   private formatIndonesianDate(date: Date) {
@@ -312,8 +333,8 @@ export class ObeService {
       graduateProfileLines,
       '',
       '### 2. Program Learning Outcomes (PLO)',
-      '| No | PLO | Deskripsi |',
-      '|----|-----|-----------|',
+      '| No | Kode PLO | Judul PLO | Deskripsi |',
+      '|----|----------|-----------|-----------|',
       ploRows,
       '',
       '### 3. Mapping Mata Kuliah ke PLO (Contoh 4 Semester Pertama)',

@@ -41,6 +41,16 @@ const pageMeta = [
     subtitle: "AI Draft Generator",
   },
   {
+    href: "/dashboard/rps",
+    title: "RPS Generator",
+    subtitle: "Rencana Pembelajaran Semester",
+  },
+  {
+    href: "/dashboard/consistency",
+    title: "Konsistensi & Validasi",
+    subtitle: "Cross-Document AI Consistency Checker",
+  },
+  {
     href: "/dashboard/research",
     title: "Penelitian",
     subtitle: "Publikasi, Hibah, & HKI",

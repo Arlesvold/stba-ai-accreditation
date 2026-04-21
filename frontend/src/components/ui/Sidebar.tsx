@@ -11,9 +11,11 @@ import {
   Building2,
   BookOpen,
   BookMarked,
+  NotebookText,
   FlaskConical,
   Handshake,
   CircleHelp,
+  ShieldCheck,
   LifeBuoy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -27,6 +29,8 @@ const navItems = [
   { href: "/dashboard/iku", label: "IKU", subLabel: "Indikator Kinerja", icon: Building2 },
   { href: "/dashboard/led", label: "LED", subLabel: "Document Generator", icon: BookOpen },
   { href: "/dashboard/obe", label: "Kurikulum OBE", subLabel: "Outcome-Based Education", icon: BookMarked },
+  { href: "/dashboard/rps", label: "RPS", subLabel: "Rencana Pembelajaran", icon: NotebookText },
+  { href: "/dashboard/consistency", label: "Konsistensi", subLabel: "Validasi Dokumen AI", icon: ShieldCheck },
   { href: "/dashboard/research", label: "Penelitian", subLabel: "Publikasi & Hibah", icon: FlaskConical },
   { href: "/dashboard/kerjasama", label: "Kerjasama", subLabel: "MoU & Partnership", icon: Handshake },
   { href: "/dashboard/risk", label: "Risiko", subLabel: "Risk & Follow Up", icon: CircleHelp },

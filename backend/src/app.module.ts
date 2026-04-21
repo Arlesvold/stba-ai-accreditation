@@ -16,6 +16,8 @@ import { StudentModule } from './student/student.module.js';
 import { SpmiModule } from './spmi/spmi.module.js';
 import { CooperationModule } from './cooperation/cooperation.module.js';
 import { ObeModule } from './obe/obe.module.js';
+import { RpsModule } from './rps/rps.module.js';
+import { ConsistencyCheckerModule } from './consistency-checker/consistency-checker.module.js';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { ObeModule } from './obe/obe.module.js';
     SpmiModule,
     CooperationModule,
     ObeModule,
+    RpsModule,
+    ConsistencyCheckerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
