@@ -173,6 +173,92 @@ type LedDownloadResponse = {
   sections?: LedDownloadSection[];
 };
 
+type ConsistencyFinding = {
+  status: "LOLOS" | "FLAG_MERAH";
+  metricKey: string;
+  sentence: string;
+  expectedValue: string;
+  foundValue: string;
+  reason: string;
+};
+
+type ComplianceFinding = {
+  status: "LOLOS" | "WARNING" | "RED_FLAG";
+  ruleCode: string;
+  message: string;
+  missingEvidence?: string[];
+};
+
+type ValidationResultRow = {
+  id: string;
+  validationType: string;
+  severity: string;
+  ruleCode?: string | null;
+  message: string;
+  details?: unknown;
+  createdAt: string;
+};
+
+type CheckerRunResponse = {
+  toolCode: string;
+  status: "LOLOS" | "FLAG_MERAH";
+  summary: {
+    consistencyChecked: number;
+    complianceChecked: number;
+    redFlags: number;
+    warnings: number;
+  };
+  consistency: ConsistencyFinding[];
+  compliance: ComplianceFinding[];
+  savedCount: number;
+  validationResults: ValidationResultRow[];
+};
+
+function normalizeComparisonText(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function detectLineTone(
+  line: string,
+  redSentences: string[],
+  yellowKeywords: string[]
+): "red" | "yellow" | "normal" {
+  const normalizedLine = normalizeComparisonText(line);
+  if (!normalizedLine) return "normal";
+
+  const hasRed = redSentences.some((sentence) => {
+    const normalizedSentence = normalizeComparisonText(sentence);
+    if (!normalizedSentence) return false;
+
+    if (normalizedLine.includes(normalizedSentence)) return true;
+
+    const clippedSentence = normalizedSentence.slice(0, 42);
+    return clippedSentence.length >= 8 && normalizedLine.includes(clippedSentence);
+  });
+
+  if (hasRed) return "red";
+
+  const hasYellow = yellowKeywords.some((keyword) => {
+    const normalizedKeyword = normalizeComparisonText(keyword);
+    return normalizedKeyword.length > 1 && normalizedLine.includes(normalizedKeyword);
+  });
+
+  return hasYellow ? "yellow" : "normal";
+}
+
+function toUiFlagLabel(status: string) {
+  if (status === "FLAG_MERAH" || status === "RED_FLAG") return "RED FLAG";
+  return status;
+}
+
+function normalizeFlagText(message: string) {
+  return message.replace(/FLAG[_ ]MERAH/gi, "RED FLAG");
+}
+
 function statusBadge(status: LedStatus) {
   switch (status) {
     case "COMPLETED":
@@ -449,6 +535,7 @@ async function buildPdfBlob(title: string, sections: LedDownloadSection[]) {
 export default function LedPage() {
   const [workspaceJob, setWorkspaceJob] = useState<WorkspaceJob | null>(null);
   const [activeCriterion, setActiveCriterion] = useState<number | null>(null);
+  const [activeOutputId, setActiveOutputId] = useState<string | null>(null);
   const [loadingCriterion, setLoadingCriterion] = useState<number | null>(null);
   const [workspaceLoading, setWorkspaceLoading] = useState(false);
   const [workspaceError, setWorkspaceError] = useState<string | null>(null);
@@ -467,6 +554,21 @@ export default function LedPage() {
     null
   );
   const [lastExportMessage, setLastExportMessage] = useState<string | null>(null);
+  const [checkerLoading, setCheckerLoading] = useState(false);
+  const [checkerStatus, setCheckerStatus] = useState<
+    "IDLE" | "LOLOS" | "FLAG_MERAH"
+  >("IDLE");
+  const [consistencyFindings, setConsistencyFindings] = useState<
+    ConsistencyFinding[]
+  >([]);
+  const [complianceFindings, setComplianceFindings] = useState<
+    ComplianceFinding[]
+  >([]);
+  const [validationHistory, setValidationHistory] = useState<ValidationResultRow[]>(
+    []
+  );
+  const [highlightSentences, setHighlightSentences] = useState<string[]>([]);
+  const [highlightKeywords, setHighlightKeywords] = useState<string[]>([]);
 
   const [year, setYear] = useState(new Date().getFullYear());
   const [format, setFormat] = useState<"docx" | "pdf">("docx");
@@ -474,6 +576,31 @@ export default function LedPage() {
   const approvedVersion = useMemo(
     () => versions.find((item) => item.id === approvedVersionId) ?? null,
     [versions, approvedVersionId]
+  );
+
+  const highlightedDraftLines = useMemo(
+    () =>
+      draftText.split("\n").map((line, index) => ({
+        lineNo: index + 1,
+        text: line,
+        tone: detectLineTone(line, highlightSentences, highlightKeywords),
+      })),
+    [draftText, highlightSentences, highlightKeywords]
+  );
+
+  const redFlagCount = useMemo(() => {
+    const fromConsistency = consistencyFindings.filter(
+      (item) => item.status === "FLAG_MERAH"
+    ).length;
+    const fromCompliance = complianceFindings.filter(
+      (item) => item.status === "RED_FLAG"
+    ).length;
+    return fromConsistency + fromCompliance;
+  }, [consistencyFindings, complianceFindings]);
+
+  const warningCount = useMemo(
+    () => complianceFindings.filter((item) => item.status === "WARNING").length,
+    [complianceFindings]
   );
 
   function mapJob(payload: {
@@ -496,6 +623,7 @@ export default function LedPage() {
   function hydrateWorkspace(data: LedStatusResponse, preferredCriterion?: number) {
     const firstOutput = data.outputs?.[0];
     const sections = firstOutput?.sectionOutputs ?? [];
+    setActiveOutputId(firstOutput?.id ?? null);
 
     const targetSectionCode = preferredCriterion
       ? `LED-C${preferredCriterion}`
@@ -521,6 +649,12 @@ export default function LedPage() {
       setSourceStructuredData({});
       setEvidenceItems([]);
       setDraftText("");
+      setConsistencyFindings([]);
+      setComplianceFindings([]);
+      setHighlightSentences([]);
+      setHighlightKeywords([]);
+      setCheckerStatus("IDLE");
+      setValidationHistory([]);
       return;
     }
 
@@ -553,6 +687,17 @@ export default function LedPage() {
     setComments([]);
     setVersions([]);
     setApprovedVersionId(null);
+    setConsistencyFindings([]);
+    setComplianceFindings([]);
+    setHighlightSentences([]);
+    setHighlightKeywords([]);
+    setCheckerStatus("IDLE");
+
+    if (firstOutput?.id) {
+      void fetchValidationHistory(firstOutput.id);
+    } else {
+      setValidationHistory([]);
+    }
   }
 
   async function fetchStatus(jobId: string) {
@@ -560,6 +705,17 @@ export default function LedPage() {
       `/led/status/${jobId}`
     );
     return response.data.data;
+  }
+
+  async function fetchValidationHistory(documentOutputId: string) {
+    try {
+      const response = await api.get<ApiEnvelope<ValidationResultRow[]>>(
+        `/led/validation/${documentOutputId}`
+      );
+      setValidationHistory(response.data.data ?? []);
+    } catch {
+      setValidationHistory([]);
+    }
   }
 
   async function waitForCompletion(jobId: string) {
@@ -579,6 +735,66 @@ export default function LedPage() {
     }
 
     return fetchStatus(jobId);
+  }
+
+  async function handleRunConsistencyChecker() {
+    if (!activeOutputId) {
+      setWorkspaceError(
+        "Belum ada document output aktif. Generate atau refresh kriteria terlebih dahulu."
+      );
+      return;
+    }
+
+    setWorkspaceError(null);
+    setCheckerLoading(true);
+
+    try {
+      const response = await api.post<ApiEnvelope<CheckerRunResponse>>(
+        "/led/document.check_consistency",
+        {
+          documentOutputId: activeOutputId,
+          draftText,
+          sectionCode: activeCriterion ? `LED-C${activeCriterion}` : undefined,
+          persist: true,
+        }
+      );
+
+      const payload = response.data.data;
+      setCheckerStatus(payload.status);
+      setConsistencyFindings(payload.consistency ?? []);
+      setComplianceFindings(payload.compliance ?? []);
+      setValidationHistory(payload.validationResults ?? []);
+
+      const redLines = (payload.consistency ?? [])
+        .filter((item) => item.status === "FLAG_MERAH")
+        .map((item) => item.sentence)
+        .filter(Boolean);
+
+      setHighlightSentences(redLines);
+
+      const yellowRuleKeywords = (payload.compliance ?? [])
+        .filter(
+          (item) =>
+            item.status !== "LOLOS" || item.ruleCode.includes("MISSING_EVIDENCE")
+        )
+        .flatMap(() => [
+          "kebijakan",
+          "surat keputusan",
+          " sk ",
+          "peraturan",
+          "pedoman",
+          "evidence",
+          "bukti",
+        ]);
+
+      setHighlightKeywords(yellowRuleKeywords);
+    } catch {
+      setWorkspaceError(
+        "Gagal menjalankan checker konsistensi/compliance. Periksa respons backend."
+      );
+    } finally {
+      setCheckerLoading(false);
+    }
   }
 
   async function handleGenerateCriterion(criterionNo: number) {
@@ -1059,28 +1275,259 @@ export default function LedPage() {
                   <TabsTrigger value="versions">Versions ({versions.length})</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="draft" className="mt-4 space-y-3">
-                  <Textarea
-                    value={draftText}
-                    onChange={(event) => setDraftText(event.target.value)}
-                    className="min-h-[340px] resize-y leading-7"
-                    placeholder="Draf narasi LED akan muncul di sini setelah generate."
-                  />
+                <TabsContent value="draft" className="mt-4 space-y-4">
+                  <div className="grid gap-4 xl:grid-cols-[1.55fr_1fr]">
+                    <div className="space-y-3">
+                      <Textarea
+                        value={draftText}
+                        onChange={(event) => setDraftText(event.target.value)}
+                        className="min-h-[320px] resize-y leading-7"
+                        placeholder="Draf narasi LED akan muncul di sini setelah generate."
+                      />
 
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={handleSaveVersion}>
-                      <Save className="mr-2 h-4 w-4" />
-                      Save Version
-                    </Button>
-                    <Button size="sm" onClick={handleApproveLatest}>
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Approval
-                    </Button>
-                    {approvedVersion && (
-                      <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
-                        Approved: {approvedVersion.label}
-                      </Badge>
-                    )}
+                      <div className="rounded-lg border bg-background p-3">
+                        <div className="mb-2 flex items-center justify-between">
+                          <p className="text-sm font-medium">Highlight Konflik Narasi</p>
+                          {redFlagCount > 0 ? (
+                            <Badge variant="destructive">RED FLAG: {redFlagCount}</Badge>
+                          ) : (
+                            <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
+                              LOLOS
+                            </Badge>
+                          )}
+                        </div>
+
+                        <ScrollArea className="max-h-[180px] rounded-md border bg-muted/20 p-2">
+                          <div className="space-y-1 text-xs">
+                            {highlightedDraftLines.length === 0 && (
+                              <p className="text-muted-foreground">
+                                Jalankan checker untuk melihat highlight konflik.
+                              </p>
+                            )}
+
+                            {highlightedDraftLines.map((line) => (
+                              <div
+                                key={`line-${line.lineNo}`}
+                                className={`rounded px-2 py-1 ${
+                                  line.tone === "red"
+                                    ? "border border-red-300 bg-red-50 text-red-800"
+                                    : line.tone === "yellow"
+                                      ? "border border-amber-300 bg-amber-50 text-amber-800"
+                                      : "text-muted-foreground"
+                                }`}
+                              >
+                                <span className="mr-2 font-semibold">{line.lineNo}.</span>
+                                <span>{line.text || " "}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={handleSaveVersion}>
+                          <Save className="mr-2 h-4 w-4" />
+                          Save Version
+                        </Button>
+                        <Button size="sm" onClick={handleApproveLatest}>
+                          <CheckCircle2 className="mr-2 h-4 w-4" />
+                          Approval
+                        </Button>
+                        {approvedVersion && (
+                          <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
+                            Approved: {approvedVersion.label}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    <Card className="border border-rose-200 bg-rose-50/40">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <div>
+                            <CardTitle className="text-sm">
+                              Validation & Consistency Checker
+                            </CardTitle>
+                            <CardDescription className="mt-1 text-xs">
+                              Pemeriksaan otomatis konflik data, red flag, dan compliance
+                              missing evidence.
+                            </CardDescription>
+                          </div>
+
+                          <Button
+                            size="sm"
+                            onClick={handleRunConsistencyChecker}
+                            disabled={checkerLoading || !activeOutputId}
+                          >
+                            {checkerLoading ? (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                              <ShieldCheck className="mr-2 h-4 w-4" />
+                            )}
+                            Run Checker
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="rounded-md border bg-background p-2">
+                            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                              Status
+                            </p>
+                            <div className="mt-1">
+                              {checkerStatus === "FLAG_MERAH" ? (
+                                <Badge variant="destructive">RED FLAG</Badge>
+                              ) : checkerStatus === "LOLOS" ? (
+                                <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
+                                  LOLOS
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary">Belum dicek</Badge>
+                              )}
+                            </div>
+                          </div>
+                          <div className="rounded-md border bg-background p-2">
+                            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                              Ringkasan
+                            </p>
+                            <p className="mt-1 text-xs">
+                              {redFlagCount} RED FLAG, {warningCount} warning
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            Consistency Check
+                          </p>
+                          <ScrollArea className="max-h-[150px] rounded-md border bg-background p-2">
+                            <div className="space-y-2">
+                              {consistencyFindings.length === 0 && (
+                                <p className="text-xs text-muted-foreground">
+                                  Belum ada hasil consistency check.
+                                </p>
+                              )}
+
+                              {consistencyFindings.map((item, index) => (
+                                <div
+                                  key={`consistency-${item.metricKey}-${index}`}
+                                  className={`rounded-md border p-2 text-xs ${
+                                    item.status === "FLAG_MERAH"
+                                      ? "border-red-300 bg-red-50"
+                                      : "border-emerald-200 bg-emerald-50"
+                                  }`}
+                                >
+                                  <div className="mb-1 flex items-center justify-between gap-2">
+                                    <p className="font-medium">{humanizeKey(item.metricKey)}</p>
+                                    <Badge
+                                      variant={
+                                        item.status === "FLAG_MERAH"
+                                          ? "destructive"
+                                          : "secondary"
+                                      }
+                                    >
+                                      {toUiFlagLabel(item.status)}
+                                    </Badge>
+                                  </div>
+                                  <p className="leading-relaxed">{item.sentence}</p>
+                                  {item.status === "FLAG_MERAH" && (
+                                    <p className="mt-1 font-medium text-red-700">
+                                      Ditemukan: {item.foundValue} | Seharusnya: {item.expectedValue}
+                                    </p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </ScrollArea>
+                        </div>
+
+                        <div className="space-y-1">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            Compliance Check
+                          </p>
+                          <ScrollArea className="max-h-[130px] rounded-md border bg-background p-2">
+                            <div className="space-y-2">
+                              {complianceFindings.length === 0 && (
+                                <p className="text-xs text-muted-foreground">
+                                  Belum ada hasil compliance check.
+                                </p>
+                              )}
+
+                              {complianceFindings.map((item, index) => (
+                                <div
+                                  key={`compliance-${item.ruleCode}-${index}`}
+                                  className={`rounded-md border p-2 text-xs ${
+                                    item.status === "RED_FLAG"
+                                      ? "border-red-300 bg-red-50"
+                                      : item.status === "WARNING"
+                                        ? "border-amber-300 bg-amber-50"
+                                        : "border-emerald-200 bg-emerald-50"
+                                  }`}
+                                >
+                                  <div className="mb-1 flex items-center justify-between gap-2">
+                                    <p className="font-medium">{item.ruleCode}</p>
+                                    <Badge
+                                      variant={
+                                        item.status === "RED_FLAG"
+                                          ? "destructive"
+                                          : "secondary"
+                                      }
+                                    >
+                                      {toUiFlagLabel(item.status)}
+                                    </Badge>
+                                  </div>
+                                  <p>{normalizeFlagText(item.message)}</p>
+                                  {Array.isArray(item.missingEvidence) &&
+                                    item.missingEvidence.length > 0 && (
+                                      <p className="mt-1 text-red-700">
+                                        Missing Evidence: {item.missingEvidence.join("; ")}
+                                      </p>
+                                    )}
+                                </div>
+                              ))}
+                            </div>
+                          </ScrollArea>
+                        </div>
+
+                        <div className="space-y-1">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            Validation History
+                          </p>
+                          <ScrollArea className="max-h-[120px] rounded-md border bg-background p-2">
+                            <div className="space-y-1">
+                              {validationHistory.length === 0 && (
+                                <p className="text-xs text-muted-foreground">
+                                  Belum ada entri ValidationResult tersimpan.
+                                </p>
+                              )}
+
+                              {validationHistory.map((item) => (
+                                <div
+                                  key={item.id}
+                                  className="rounded-md border bg-muted/30 p-2 text-xs"
+                                >
+                                  <div className="mb-1 flex items-center justify-between gap-2">
+                                    <Badge variant="outline">{item.validationType}</Badge>
+                                    <Badge
+                                      variant={
+                                        item.severity === "RED_FLAG"
+                                          ? "destructive"
+                                          : "secondary"
+                                      }
+                                    >
+                                      {toUiFlagLabel(item.severity)}
+                                    </Badge>
+                                  </div>
+                                  <p className="leading-relaxed">
+                                    {normalizeFlagText(item.message)}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </ScrollArea>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
                 </TabsContent>
 
