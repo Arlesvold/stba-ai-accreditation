@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { GenerateDocumentDto } from './dto/generate-led.dto.js';
+import { CheckConsistencyDto } from './dto/check-consistency.dto.js';
 
 type LedCriterionNo = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
@@ -33,6 +34,22 @@ interface ConsistencyReport {
   repaired: boolean;
   missingFacts: string[];
   crossDocumentConflicts: string[];
+}
+
+interface ConsistencyClaimFinding {
+  status: 'LOLOS' | 'FLAG_MERAH';
+  metricKey: string;
+  sentence: string;
+  expectedValue: string;
+  foundValue: string;
+  reason: string;
+}
+
+interface ComplianceFinding {
+  status: 'LOLOS' | 'WARNING' | 'RED_FLAG';
+  ruleCode: string;
+  message: string;
+  missingEvidence?: string[];
 }
 
 interface CriterionArtifact {
@@ -148,6 +165,53 @@ interface LedContext {
 }
 
 const LED_MCP_TOOL_CODE = 'led.generate';
+const LED_CONSISTENCY_TOOL_CODE = 'document.check_consistency';
+
+const CONSISTENCY_SYSTEM_PROMPT =
+  'Ekstrak seluruh angka dan klaim faktual dari draf LED ini. Bandingkan dengan data sumber JSON berikut. Jika angka sama beri status LOLOS. Jika berbeda, keluarkan objek JSON berisi status FLAG MERAH, kalimat yang salah, dan angka seharusnya.';
+
+const FACT_KEYWORD_ALIASES: Record<string, string[]> = {
+  active_study_programs_total: ['program studi aktif'],
+  organization_units_total: ['unit organisasi', 'struktur organisasi'],
+  vmts_version: ['versi vmts', 'versi visi misi'],
+  applicants_total: ['pendaftar'],
+  new_students_total: ['mahasiswa baru'],
+  active_students_total: ['mahasiswa aktif'],
+  dropout_rate_pct: ['putus studi', 'dropout'],
+  student_achievements_total: ['prestasi mahasiswa'],
+  mbkm_students_total: ['mahasiswa mbkm'],
+  permanent_lecturers_total: ['dosen tetap'],
+  non_permanent_lecturers_total: ['dosen tidak tetap', 'dosen tidak permanen'],
+  masters_lecturers_total: ['dosen magister', 'dosen s2'],
+  doctoral_lecturers_total: ['dosen doktor', 'dosen s3'],
+  lecturer_certified_total: ['dosen bersertifikat', 'sertifikasi dosen'],
+  lecturer_student_ratio: ['rasio dosen', 'rasio dosen mahasiswa'],
+  operational_budget: ['anggaran operasional'],
+  research_budget: ['anggaran penelitian'],
+  service_budget: ['anggaran pengabdian'],
+  scholarship_budget: ['anggaran beasiswa'],
+  classrooms_total: ['ruang kelas'],
+  labs_total: ['laboratorium'],
+  library_collections_total: ['koleksi perpustakaan'],
+  internet_coverage_pct: ['cakupan internet'],
+  obe_implemented_pct: ['implementasi obe'],
+  rps_complete_pct: ['kelengkapan rps'],
+  mbkm_courses_pct: ['mata kuliah mbkm'],
+  research_grants_total: ['hibah penelitian'],
+  publications_total: ['publikasi'],
+  scopus_total: ['scopus'],
+  ipr_total: ['hki', 'hak kekayaan intelektual'],
+  citation_total: ['sitasi'],
+  service_programs_total: ['program pengabdian'],
+  service_partners_total: ['mitra pengabdian'],
+  service_outputs_total: ['luaran pengabdian'],
+  avg_gpa: ['rata-rata ipk', 'ipk rata-rata'],
+  avg_study_period_years: ['masa studi'],
+  employment_wait_months: ['masa tunggu kerja'],
+  field_alignment_pct: ['kesesuaian bidang kerja'],
+  continuing_study_pct: ['studi lanjut'],
+  iku_metrics_total: ['metrik iku', 'indikator iku'],
+};
 
 const DEFAULT_CRITERIA: LedCriterionNo[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
@@ -171,12 +235,20 @@ export class LedService {
     return this.runLedGenerationPipeline(dto, userId, 'api');
   }
 
-  async executeMcpTool(toolCode: string, dto: GenerateDocumentDto, userId: string) {
-    if (toolCode !== LED_MCP_TOOL_CODE) {
-      throw new NotFoundException(`MCP tool ${toolCode} tidak ditemukan`);
+  async executeMcpTool(
+    toolCode: string,
+    dto: GenerateDocumentDto | CheckConsistencyDto,
+    userId: string,
+  ) {
+    if (toolCode === LED_MCP_TOOL_CODE) {
+      return this.runLedGenerationPipeline(dto as GenerateDocumentDto, userId, 'mcp');
     }
 
-    return this.runLedGenerationPipeline(dto, userId, 'mcp');
+    if (toolCode === LED_CONSISTENCY_TOOL_CODE) {
+      return this.checkConsistency(dto as CheckConsistencyDto, userId);
+    }
+
+    throw new NotFoundException(`MCP tool ${toolCode} tidak ditemukan`);
   }
 
   async getStatus(jobId: string) {
@@ -264,6 +336,130 @@ export class LedService {
         pdfFileKey: output.pdfFileKey,
         generatedAt: output.generatedAt,
         sections,
+      },
+    };
+  }
+
+  async checkConsistency(dto: CheckConsistencyDto, userId: string) {
+    await this.ensureConsistencyToolRegistry();
+
+    const documentOutput = await this.prisma.documentOutput.findUnique({
+      where: { id: dto.documentOutputId },
+      include: {
+        sectionOutputs: {
+          include: {
+            documentSection: true,
+          },
+          orderBy: {
+            documentSection: {
+              sectionOrder: 'asc',
+            },
+          },
+        },
+      },
+    });
+
+    if (!documentOutput) {
+      throw new NotFoundException('Document output tidak ditemukan');
+    }
+
+    const selectedSections = dto.sectionCode
+      ? documentOutput.sectionOutputs.filter(
+          (item) => item.documentSection.sectionCode === dto.sectionCode,
+        )
+      : documentOutput.sectionOutputs;
+
+    if (selectedSections.length === 0) {
+      throw new BadRequestException('Section output tidak tersedia untuk checker');
+    }
+
+    const sourceFacts = this.collectSourceFacts(selectedSections);
+    const evidenceBindings = this.collectEvidenceBindings(selectedSections);
+    const draftText = (dto.draftText ?? '').trim().length > 0
+      ? dto.draftText!.trim()
+      : selectedSections.map((item) => item.sectionText).join('\n\n');
+
+    if (!draftText) {
+      throw new BadRequestException('Draft text kosong, checker tidak dapat dijalankan');
+    }
+
+    const consistencyFindings = this.runDocumentConsistencyChecker(draftText, sourceFacts);
+    const complianceFindings = this.runComplianceChecker(draftText, evidenceBindings);
+
+    const hasRedFlag =
+      consistencyFindings.some((item) => item.status === 'FLAG_MERAH')
+      || complianceFindings.some((item) => item.status === 'RED_FLAG');
+
+    const persisted = dto.persist ?? true;
+    let savedCount = 0;
+
+    if (persisted) {
+      savedCount = await this.persistDocumentCheckResults(
+        documentOutput.id,
+        consistencyFindings,
+        complianceFindings,
+        {
+          sectionCode: dto.sectionCode ?? null,
+          sourceFacts,
+          userId,
+          systemPrompt: CONSISTENCY_SYSTEM_PROMPT,
+          checkedAt: new Date().toISOString(),
+        },
+      );
+    }
+
+    const results = await this.prisma.validationResult.findMany({
+      where: {
+        documentOutputId: documentOutput.id,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+
+    return {
+      success: true,
+      data: {
+        toolCode: LED_CONSISTENCY_TOOL_CODE,
+        status: hasRedFlag ? 'FLAG_MERAH' : 'LOLOS',
+        summary: {
+          consistencyChecked: consistencyFindings.length,
+          complianceChecked: complianceFindings.length,
+          redFlags:
+            consistencyFindings.filter((item) => item.status === 'FLAG_MERAH').length
+            + complianceFindings.filter((item) => item.status === 'RED_FLAG').length,
+          warnings: complianceFindings.filter((item) => item.status === 'WARNING').length,
+        },
+        consistency: consistencyFindings,
+        compliance: complianceFindings,
+        savedCount,
+        sourceFacts,
+        systemPrompt: CONSISTENCY_SYSTEM_PROMPT,
+        validationResults: results,
+      },
+    };
+  }
+
+  async getValidationResults(documentOutputId: string, take?: number) {
+    const normalizedTake =
+      typeof take === 'number' && Number.isFinite(take) && take > 0
+        ? Math.min(Math.floor(take), 200)
+        : 100;
+
+    const data = await this.prisma.validationResult.findMany({
+      where: {
+        documentOutputId,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: normalizedTake,
+    });
+
+    return {
+      success: true,
+      data,
+      meta: {
+        total: data.length,
       },
     };
   }
@@ -1067,15 +1263,326 @@ export class LedService {
     await this.prisma.validationResult.create({
       data: {
         documentOutputId: outputId,
-        validationType: 'consistency',
-        severity: consistency.passed ? 'warning' : 'error',
-        ruleCode: `LED-C${criterionNo}-CONSISTENCY`,
+        validationType: 'CONSISTENCY',
+        severity: consistency.passed ? 'WARNING' : 'RED_FLAG',
+        ruleCode: `AUTO-LED-C${criterionNo}-CONSISTENCY`,
         message: consistency.passed
           ? `Consistency checker menambahkan penegasan data numerik untuk C${criterionNo}.`
           : `Consistency checker menemukan konflik lintas dokumen untuk C${criterionNo}.`,
         details: this.asJson(consistency),
       },
     });
+  }
+
+  private collectSourceFacts(
+    sections: Array<{ sourceSnapshot: unknown }>,
+  ): Record<string, number> {
+    const mergedFacts: Record<string, number> = {};
+
+    for (const section of sections) {
+      const source = this.toObject(section.sourceSnapshot);
+      const facts = this.toObject(source.facts);
+
+      for (const [key, value] of Object.entries(facts)) {
+        const numericValue = this.normalizeNumericValue(value);
+        if (numericValue === null) {
+          continue;
+        }
+        mergedFacts[key] = numericValue;
+      }
+    }
+
+    return mergedFacts;
+  }
+
+  private collectEvidenceBindings(
+    sections: Array<{ sourceSnapshot: unknown }>,
+  ): EvidenceBinding[] {
+    const bindings: EvidenceBinding[] = [];
+
+    for (const section of sections) {
+      const source = this.toObject(section.sourceSnapshot);
+      const rawBindings = Array.isArray(source.evidenceBindings)
+        ? source.evidenceBindings
+        : [];
+
+      for (const rawBinding of rawBindings) {
+        const item = this.toObject(rawBinding);
+        bindings.push({
+          evidenceId: String(item.evidenceId ?? ''),
+          evidenceCode: String(item.evidenceCode ?? '-'),
+          title: String(item.title ?? 'Tanpa judul'),
+          documentType: item.documentType ? String(item.documentType) : null,
+          fileKey: item.fileKey ? String(item.fileKey) : null,
+          fileName: item.fileName ? String(item.fileName) : null,
+          criterionCode: item.criterionCode ? String(item.criterionCode) : null,
+          mappingNote: item.mappingNote ? String(item.mappingNote) : null,
+        });
+      }
+    }
+
+    return bindings;
+  }
+
+  private runDocumentConsistencyChecker(
+    draftText: string,
+    sourceFacts: Record<string, number>,
+  ): ConsistencyClaimFinding[] {
+    const findings: ConsistencyClaimFinding[] = [];
+    const sentences = this.splitSentences(draftText);
+
+    for (const sentence of sentences) {
+      if (!/\d/.test(sentence)) {
+        continue;
+      }
+
+      const sentenceLower = sentence.toLowerCase();
+      const sentenceNumbers = this.extractNumericTokens(sentence);
+      if (sentenceNumbers.length === 0) {
+        continue;
+      }
+
+      for (const [metricKey, expected] of Object.entries(sourceFacts)) {
+        const aliases = this.getMetricAliases(metricKey);
+        const isMetricMentioned = aliases.some(
+          (alias) => alias.length > 0 && sentenceLower.includes(alias),
+        );
+
+        if (!isMetricMentioned) {
+          continue;
+        }
+
+        const foundValue = sentenceNumbers[0] ?? '';
+        const expectedValue = String(expected);
+        const foundNumber = this.normalizeNumericValue(foundValue);
+        const expectedNumber = this.normalizeNumericValue(expected);
+
+        if (foundNumber === null || expectedNumber === null) {
+          continue;
+        }
+
+        const same = Math.abs(foundNumber - expectedNumber) < 0.01;
+
+        findings.push({
+          status: same ? 'LOLOS' : 'FLAG_MERAH',
+          metricKey,
+          sentence,
+          expectedValue,
+          foundValue,
+          reason: same
+            ? 'Angka pada teks konsisten dengan data sumber.'
+            : 'Angka pada teks berbeda dengan data sumber.',
+        });
+      }
+    }
+
+    if (findings.length > 0) {
+      return findings;
+    }
+
+    return [
+      {
+        status: 'LOLOS',
+        metricKey: 'NO_NUMERIC_CONFLICT',
+        sentence: 'Tidak ditemukan konflik numerik yang dapat dipetakan pada draf.',
+        expectedValue: '-',
+        foundValue: '-',
+        reason: 'Checker tidak menemukan perbedaan angka terhadap sumber data.',
+      },
+    ];
+  }
+
+  private runComplianceChecker(
+    draftText: string,
+    evidenceBindings: EvidenceBinding[],
+  ): ComplianceFinding[] {
+    const findings: ComplianceFinding[] = [];
+    const draftTextLower = draftText.toLowerCase();
+
+    const requiredBlocks = [
+      'deskripsi kondisi eksisting',
+      'analisis kekuatan',
+      'identifikasi kelemahan',
+      'rencana tindak lanjut',
+    ];
+
+    const missingBlocks = requiredBlocks.filter(
+      (block) => !draftTextLower.includes(block),
+    );
+
+    if (missingBlocks.length > 0) {
+      findings.push({
+        status: 'WARNING',
+        ruleCode: 'CHECKER-COMPLIANCE-STRUCTURE',
+        message: `Struktur narasi belum lengkap. Bagian yang belum ditemukan: ${missingBlocks.join(', ')}.`,
+        missingEvidence: missingBlocks,
+      });
+    }
+
+    const mentionPolicy = /kebijakan|surat keputusan|\bsk\b|peraturan|pedoman/i.test(
+      draftTextLower,
+    );
+
+    const policyEvidence = evidenceBindings.filter((item) => {
+      const searchable = `${item.evidenceCode} ${item.title} ${item.fileName ?? ''} ${item.fileKey ?? ''}`
+        .toLowerCase();
+      return /\bsk\b|surat keputusan|kebijakan|peraturan|pedoman/.test(searchable)
+        && Boolean(item.fileKey);
+    });
+
+    if (mentionPolicy && policyEvidence.length === 0) {
+      findings.push({
+        status: 'RED_FLAG',
+        ruleCode: 'CHECKER-COMPLIANCE-MISSING_EVIDENCE',
+        message:
+          'Narasi menyebut dokumen kebijakan namun tidak ada file SK yang tertaut pada evidence binding (Missing Evidence).',
+        missingEvidence: ['File SK atau dokumen kebijakan belum terhubung dari storage MinIO.'],
+      });
+    }
+
+    const evidenceWithoutFile = evidenceBindings
+      .filter((item) => !item.fileKey)
+      .map((item) => `${item.evidenceCode} - ${item.title}`);
+
+    if (evidenceWithoutFile.length > 0) {
+      findings.push({
+        status: 'WARNING',
+        ruleCode: 'CHECKER-COMPLIANCE-EVIDENCE_FILE_MISSING',
+        message:
+          'Sebagian evidence mapping belum memiliki file_key, sehingga verifikasi bukti belum lengkap.',
+        missingEvidence: evidenceWithoutFile,
+      });
+    }
+
+    if (findings.length > 0) {
+      return findings;
+    }
+
+    return [
+      {
+        status: 'LOLOS',
+        ruleCode: 'CHECKER-COMPLIANCE-PASS',
+        message: 'Struktur narasi dan evidence utama memenuhi pemeriksaan compliance.',
+      },
+    ];
+  }
+
+  private async persistDocumentCheckResults(
+    documentOutputId: string,
+    consistencyFindings: ConsistencyClaimFinding[],
+    complianceFindings: ComplianceFinding[],
+    metadata: Record<string, unknown>,
+  ) {
+    await this.prisma.validationResult.deleteMany({
+      where: {
+        documentOutputId,
+        ruleCode: {
+          startsWith: 'CHECKER-',
+        },
+      },
+    });
+
+    const toCreate = [] as Array<{
+      documentOutputId: string;
+      validationType: string;
+      severity: string;
+      ruleCode: string;
+      message: string;
+      details: any;
+    }>;
+
+    consistencyFindings
+      .filter((item) => item.status === 'FLAG_MERAH')
+      .forEach((item, index) => {
+        toCreate.push({
+          documentOutputId,
+          validationType: 'CONSISTENCY',
+          severity: 'RED_FLAG',
+          ruleCode: `CHECKER-CONSISTENCY-${item.metricKey.toUpperCase().replace(/[^A-Z0-9_]/g, '_')}-${index + 1}`,
+          message: `FLAG MERAH: kalimat mengandung nilai ${item.foundValue}, seharusnya ${item.expectedValue}.`,
+          details: this.asJson({
+            checker: LED_CONSISTENCY_TOOL_CODE,
+            systemPrompt: CONSISTENCY_SYSTEM_PROMPT,
+            ...metadata,
+            finding: item,
+          }),
+        });
+      });
+
+    complianceFindings
+      .filter((item) => item.status !== 'LOLOS')
+      .forEach((item, index) => {
+        toCreate.push({
+          documentOutputId,
+          validationType: 'COMPLIANCE',
+          severity: item.status === 'RED_FLAG' ? 'RED_FLAG' : 'WARNING',
+          ruleCode: `${item.ruleCode}-${index + 1}`,
+          message: item.message,
+          details: this.asJson({
+            checker: LED_CONSISTENCY_TOOL_CODE,
+            ...metadata,
+            finding: item,
+          }),
+        });
+      });
+
+    if (toCreate.length > 0) {
+      await this.prisma.validationResult.createMany({
+        data: toCreate,
+      });
+    }
+
+    return toCreate.length;
+  }
+
+  private splitSentences(text: string) {
+    return text
+      .split(/\n+|(?<=[.!?])\s+/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  private extractNumericTokens(text: string) {
+    return text.match(/-?\d[\d.,]*/g) ?? [];
+  }
+
+  private getMetricAliases(metricKey: string) {
+    const keyAlias = metricKey.replace(/_/g, ' ').toLowerCase();
+    const customAliases = FACT_KEYWORD_ALIASES[metricKey] ?? [];
+    return [keyAlias, ...customAliases.map((item) => item.toLowerCase())];
+  }
+
+  private normalizeNumericValue(value: unknown): number | null {
+    if (typeof value === 'number') {
+      return Number.isFinite(value) ? value : null;
+    }
+
+    if (typeof value !== 'string') {
+      return null;
+    }
+
+    const cleaned = value.replace(/[^\d,.-]/g, '').trim();
+    if (!cleaned) {
+      return null;
+    }
+
+    const hasDot = cleaned.includes('.');
+    const hasComma = cleaned.includes(',');
+
+    let normalized = cleaned;
+    if (hasDot && hasComma) {
+      normalized = cleaned.lastIndexOf(',') > cleaned.lastIndexOf('.')
+        ? cleaned.replace(/\./g, '').replace(',', '.')
+        : cleaned.replace(/,/g, '');
+    } else if (hasComma) {
+      const parts = cleaned.split(',');
+      normalized = parts.length === 2 && parts[1].length <= 2
+        ? cleaned.replace(',', '.')
+        : cleaned.replace(/,/g, '');
+    }
+
+    const parsed = Number.parseFloat(normalized);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 
   private async fetchEvidenceBindings(
@@ -1145,6 +1652,41 @@ export class LedService {
             progress: { type: 'number' },
           },
           required: ['jobId', 'status'],
+        },
+      },
+    });
+  }
+
+  private async ensureConsistencyToolRegistry() {
+    return this.prisma.toolRegistry.upsert({
+      where: {
+        toolCode: LED_CONSISTENCY_TOOL_CODE,
+      },
+      update: {
+        isActive: true,
+      },
+      create: {
+        toolCode: LED_CONSISTENCY_TOOL_CODE,
+        toolName: 'LED Document Consistency Checker',
+        isActive: true,
+        inputSchema: {
+          type: 'object',
+          properties: {
+            documentOutputId: { type: 'string' },
+            draftText: { type: 'string' },
+            sectionCode: { type: 'string' },
+            persist: { type: 'boolean' },
+          },
+          required: ['documentOutputId'],
+        },
+        outputSchema: {
+          type: 'object',
+          properties: {
+            status: { type: 'string', enum: ['LOLOS', 'FLAG_MERAH'] },
+            consistency: { type: 'array' },
+            compliance: { type: 'array' },
+          },
+          required: ['status'],
         },
       },
     });
