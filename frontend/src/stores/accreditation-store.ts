@@ -1,10 +1,37 @@
 import { create } from "zustand";
+import axios from "axios";
 import api from "@/lib/api";
 import type {
-  AccreditationReadiness,
   CreateScoreRequest,
+  AccreditationReadiness,
   UpdateScoreRequest,
 } from "@/lib/types";
+
+type StoreActionResult = {
+  success: boolean;
+  message: string;
+};
+
+function resolveApiErrorMessage(error: unknown, fallback: string): string {
+  if (!axios.isAxiosError(error)) {
+    return fallback;
+  }
+
+  const payload = error.response?.data as { message?: string | string[] } | undefined;
+  if (!payload) {
+    return fallback;
+  }
+
+  if (Array.isArray(payload.message) && payload.message.length > 0) {
+    return payload.message[0] ?? fallback;
+  }
+
+  if (typeof payload.message === "string" && payload.message.trim().length > 0) {
+    return payload.message;
+  }
+
+  return fallback;
+}
 
 interface AccreditationState {
   readiness: AccreditationReadiness | null;
@@ -12,11 +39,11 @@ interface AccreditationState {
   error: string | null;
 
   fetchReadiness: (year?: number) => Promise<void>;
-  createScore: (data: CreateScoreRequest) => Promise<void>;
+  createScore: (data: CreateScoreRequest) => Promise<StoreActionResult>;
   updateScore: (id: string, data: UpdateScoreRequest) => Promise<void>;
 }
 
-export const useAccreditationStore = create<AccreditationState>((set) => ({
+export const useAccreditationStore = create<AccreditationState>((set, get) => ({
   readiness: null,
   loading: false,
   error: null,
@@ -24,83 +51,65 @@ export const useAccreditationStore = create<AccreditationState>((set) => ({
   fetchReadiness: async (year) => {
     set({ loading: true, error: null });
     try {
-      const institutionId =
-        process.env.NEXT_PUBLIC_INSTITUTION_ID ??
-        "a0000000-0000-0000-0000-000000000001";
-
-      const res = await api.get<{
-        data: {
-          percentage?: number;
-          grade?: string;
-          vmtsReady?: boolean;
-          documentDefinitions?: number;
-          evidenceUploaded?: number;
-        };
-      }>(`/accreditation/readiness/${institutionId}`, {
-        params: year ? { year } : undefined,
+      const res = await api.get<{ data: AccreditationReadiness }>(
+        "/v1/accreditation/readiness",
+        {
+          params: typeof year === "number" ? { year } : undefined,
+        }
+      );
+      set({ readiness: res.data.data, loading: false });
+    } catch (error) {
+      set({
+        error: resolveApiErrorMessage(error, "Failed to fetch readiness"),
+        loading: false,
       });
-
-      const raw = res.data.data;
-      const vmtsScore = raw.vmtsReady ? 34 : 0;
-      const defsScore = Math.min((raw.documentDefinitions ?? 0) * 2, 33);
-      const evidenceScore = Math.min((raw.evidenceUploaded ?? 0) * 6, 33);
-      const computedPercentage = Math.round(vmtsScore + defsScore + evidenceScore);
-      const percentage =
-        typeof raw.percentage === "number" && !Number.isNaN(raw.percentage)
-          ? Math.max(0, Math.min(100, Math.round(raw.percentage)))
-          : Math.max(0, Math.min(100, computedPercentage));
-
-      const grade =
-        raw.grade ??
-        (percentage >= 85
-          ? "Baik Sekali"
-          : percentage >= 70
-            ? "Baik"
-            : percentage >= 55
-              ? "Cukup"
-              : "Perlu Peningkatan");
-
-      const normalized: AccreditationReadiness = {
-        totalScore: percentage,
-        maxScore: 100,
-        percentage,
-        grade,
-        scores: [],
-        vmtsReady: Boolean(raw.vmtsReady),
-        documentDefinitions: raw.documentDefinitions ?? 0,
-        evidenceUploaded: raw.evidenceUploaded ?? 0,
-      };
-
-      set({ readiness: normalized, loading: false });
-    } catch {
-      set({ error: "Failed to fetch readiness", loading: false });
     }
   },
 
   createScore: async (data) => {
     set({ loading: true, error: null });
     try {
-      await api.post("/accreditation/scores", data);
-      // Refresh readiness after creating
+      const createRes = await api.post<{ message?: string }>(
+        "/v1/accreditation/scores",
+        data
+      );
+      const targetYear = data.year ?? get().readiness?.year;
       const res = await api.get<{ data: AccreditationReadiness }>(
-        "/accreditation/readiness"
+        "/v1/accreditation/readiness",
+        {
+          params: typeof targetYear === "number" ? { year: targetYear } : undefined,
+        }
       );
       set({ readiness: res.data.data, loading: false });
-    } catch {
-      set({ error: "Failed to create score", loading: false });
+      return {
+        success: true,
+        message:
+          createRes.data.message ?? "Skor akreditasi berhasil ditambahkan",
+      };
+    } catch (error) {
+      const message = resolveApiErrorMessage(error, "Failed to create score");
+      set({ error: message, loading: false });
+      return { success: false, message };
     }
   },
 
   updateScore: async (id, data) => {
     set({ loading: true, error: null });
     try {
-      await api.put(`/accreditation/scores/${id}`, data);
+      await api.put(`/v1/accreditation/scores/${id}`, data);
+      const targetYear = get().readiness?.year;
       const res = await api.get<{ data: AccreditationReadiness }>(
-        "/accreditation/readiness"
+        "/v1/accreditation/readiness",
+        {
+          params: typeof targetYear === "number" ? { year: targetYear } : undefined,
+        }
       );
       set({ readiness: res.data.data, loading: false });
-    } catch {
-      set({ error: "Failed to update score", loading: false });
+    } catch (error) {
+      set({
+        error: resolveApiErrorMessage(error, "Failed to update score"),
+        loading: false,
+      });
     }
   },
 }));

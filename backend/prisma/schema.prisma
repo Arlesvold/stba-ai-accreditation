@@ -369,6 +369,22 @@ model VMTS {
   @@map("vmts")
 }
 
+model AccreditationScore {
+  id           String   @id @default(uuid()) @db.Uuid
+  criteriaNo   Int      @map("criteria_no")
+  criteriaName String   @map("criteria_name")
+  score        Float
+  maxScore     Float    @default(100) @map("max_score")
+  year         Int
+  notes        String?  @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@unique([year, criteriaNo])
+  @@index([year])
+  @@map("accreditation_scores")
+}
+
 model StudentsSummary {
   id                       String @id @default(uuid()) @db.Uuid
   institutionId            String @map("institution_id") @db.Uuid

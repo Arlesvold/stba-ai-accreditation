@@ -139,16 +139,18 @@ export interface CreateHkiRequest {
 }
 
 // ===== Accreditation =====
-export interface AccreditationScore {
+export type AccreditationStatus = "good" | "at_risk";
+
+export interface AccreditationCriterion {
   id: string;
-  criteriaNo: number;
-  criteriaName: string;
+  number: number;
+  name: string;
   score: number;
   maxScore: number;
-  year: number;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
+  gap: number;
+  status: AccreditationStatus;
+  notes?: string | null;
+  year?: number;
 }
 
 export interface CreateScoreRequest {
@@ -156,24 +158,22 @@ export interface CreateScoreRequest {
   criteriaName: string;
   score: number;
   maxScore?: number;
-  year: number;
+  year?: number;
   notes?: string;
 }
 
 export interface UpdateScoreRequest {
   score: number;
+  maxScore?: number;
   notes?: string;
 }
 
 export interface AccreditationReadiness {
-  totalScore: number;
+  year: number;
+  overallScore: number;
   maxScore: number;
   percentage: number;
-  grade: string;
-  scores: AccreditationScore[];
-  vmtsReady?: boolean;
-  documentDefinitions?: number;
-  evidenceUploaded?: number;
+  criteria: AccreditationCriterion[];
 }
 
 // ===== Risk =====
